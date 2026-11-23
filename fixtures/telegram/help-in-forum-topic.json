@@ -1,0 +1,13 @@
+{
+  "update_id": 900000001,
+  "message": {
+    "message_id": 42,
+    "message_thread_id": 7,
+    "is_topic_message": true,
+    "from": { "id": 111111111, "is_bot": false, "first_name": "Test", "username": "tester", "language_code": "nl" },
+    "chat": { "id": -1001234567890, "title": "Whale Test", "type": "supergroup", "is_forum": true },
+    "date": 1763884800,
+    "text": "/help@WhaleTestBot",
+    "entities": [{ "offset": 0, "length": 18, "type": "bot_command" }]
+  }
+}

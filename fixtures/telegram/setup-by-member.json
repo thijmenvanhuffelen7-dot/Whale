@@ -1,0 +1,11 @@
+{
+  "update_id": 900000003,
+  "message": {
+    "message_id": 44,
+    "from": { "id": 222222222, "is_bot": false, "first_name": "Lid" },
+    "chat": { "id": -1001234567890, "title": "Whale Test", "type": "supergroup" },
+    "date": 1763884920,
+    "text": "/setup",
+    "entities": [{ "offset": 0, "length": 6, "type": "bot_command" }]
+  }
+}

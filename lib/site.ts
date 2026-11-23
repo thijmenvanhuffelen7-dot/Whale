@@ -4,5 +4,5 @@ export const SITE = {
   description:
     "Track what whales and smart money do on Ethereum and Solana: large transfers, buys, sells and exchange flows. Live in Telegram and on the web.",
   telegramPublic: process.env.NEXT_PUBLIC_TELEGRAM_PUBLIC_URL || "",
-  botUsername: process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "",
+  botUsername: process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "OrcawatchAlertsBot",
 };

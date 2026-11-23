@@ -35,6 +35,11 @@ const nl = {
   ].join("\n"),
 
   start: "👋 Welkom! Voeg me toe aan een groep of typ /help voor de commando's.",
+  linked: (pro: boolean) =>
+    "✅ Je Telegram is gekoppeld aan je Whale Alert-account." +
+    (pro ? "\nJe invite-link voor de Pro-groep volgt zo." : "\nAlerts voor je watchlist in je DM zijn onderdeel van Pro."),
+  linkInvalid: "Deze koppelcode werkt niet (meer). Open je account op de site en probeer opnieuw.",
+  linkTaken: "Dit Telegram-account is al aan een ander Whale Alert-account gekoppeld. Ontkoppel het daar eerst.",
 
   walletsEmpty: "Er worden nog geen wallets gevolgd.",
   walletsHeader: (n: number) => `🐋 <b>Gevolgde wallets</b> (${n})`,

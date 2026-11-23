@@ -1,0 +1,30 @@
+export const metadata = {
+  title: "Zo lees je een whale-alert",
+  description: "Elke regel van een melding uitgelegd: type, bedrag, wallet-label en de links naar explorer en DexScreener.",
+  alternates: { canonical: "/learn/whale-alerts-gebruiken" },
+};
+
+# Zo lees je een whale-alert
+
+Een melding in Telegram ziet er ongeveer zo uit:
+
+> **Smart money koopt — SOL**
+> Wallet: Fund A (7xKX…gAsU)
+> Kocht: 12,4M $BONK (~$84.200) met 120 $SOL
+> Solscan · DexScreener
+
+## Regel voor regel
+
+- **De kop** zegt wat er gebeurde en op welke chain: koopt, verkoopt, transfer, storting naar of opname van een exchange.
+- **Wallet** is het label dat wij aan het adres gaven, met een ingekort adres erachter. Klik door op de site om alle transacties van die wallet te zien.
+- **Het bedrag** staat in tokens en in dollars. De dollarwaarde is berekend met de prijs op het moment dat wij de transactie zagen, niet op het moment van de transactie zelf.
+- **Met** of **voor** laat bij een swap zien wat ertegenover stond.
+- **De links** gaan naar de transactie in de explorer (Etherscan of Solscan) en naar het token op DexScreener.
+
+## Waarom je niet elke transactie ziet
+
+We melden alleen wat boven een drempel zit, en we laten tokens met heel weinig liquiditeit weg, omdat dat vaak spam is. Doet één wallet veel swaps vlak na elkaar, dan bundelen we ze in één bericht, zodat je groep niet volloopt.
+
+## Wat een melding niet is
+
+Een melding is geen tip. Het is een feit: deze wallet deed dit. Wat het betekent hangt af van context die wij niet kennen. Wil je meer achtergrond over een token, gebruik dan <code>/analyse</code> in de groep.

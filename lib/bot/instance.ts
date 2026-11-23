@@ -4,39 +4,19 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getAllSettings, setSetting } from "@/lib/settings";
 import { createBot } from "@/lib/bot/index";
 import { syncWalletChange } from "@/lib/providers";
+import { grantProAccess } from "@/lib/pro-group";
 import { runInBackground } from "@/lib/http";
 import { startOfAmsterdamDay } from "@/lib/digest";
-import {
-  aggregateStats,
-  buildFactsPrompt,
-  fetchNews,
-  formatAnalysis,
-  resolveToken,
-  summarize,
-} from "@/lib/analyse";
+import { formatAnalysis } from "@/lib/analyse";
+import { analyzeToken } from "@/lib/analyse/run";
 import type { Chain } from "@/lib/chain/types";
 
 let bot: Bot | null = null;
 
-/** Analyse van één token: marktdata + onze events + nieuws + AI-samenvatting. */
+/** Analyse van één token voor Telegram. */
 export async function runAnalysis(query: string): Promise<string | null> {
-  const token = await resolveToken(query);
-  if (!token) return null;
-
-  const since = new Date(Date.now() - 7 * 86400_000).toISOString();
-  const [{ data: rows }, news] = await Promise.all([
-    supabaseAdmin()
-      .from("public_events")
-      .select("type, usd_value, wallet_label")
-      .eq("chain", token.chain)
-      .eq("token_address", token.address)
-      .gte("created_at", since)
-      .limit(500),
-    fetchNews(token.symbol, token.name),
-  ]);
-  const stats = aggregateStats(rows ?? []);
-  const summary = await summarize(buildFactsPrompt(token, stats, news));
-  return formatAnalysis(token, stats, summary, news);
+  const r = await analyzeToken(query, "telegram");
+  return r ? formatAnalysis(r.token, r.stats, r.summary, r.news) : null;
 }
 
 /** De echte bot, gekoppeld aan Supabase. Eén instance per serverless-instance. */
@@ -115,6 +95,20 @@ export function getBot(): Bot {
       log: async (userId, query) => {
         await db().from("analyse_log").insert({ telegram_user_id: userId, query });
       },
+    },
+
+    linkAccount: async (code, tg) => {
+      const { data: prof } = await db().from("profiles").select("id, plan").eq("telegram_link_code", code).maybeSingle();
+      if (!prof) return "invalid";
+      const { data: other } = await db().from("profiles").select("id").eq("telegram_user_id", tg.id).maybeSingle();
+      if (other && other.id !== prof.id) return "taken";
+      await db()
+        .from("profiles")
+        // Nieuwe code, zodat de oude link niet nog eens werkt
+        .update({ telegram_user_id: tg.id, telegram_username: tg.username ?? null, telegram_link_code: crypto.randomUUID().replace(/-/g, "").slice(0, 18) })
+        .eq("id", prof.id);
+      if (prof.plan === "pro") runInBackground(() => grantProAccess(getBot().api, prof.id));
+      return prof.plan === "pro" ? "ok_pro" : "ok_free";
     },
 
     background: runInBackground,

@@ -15,8 +15,12 @@ Next.js (App Router) op Vercel, grammY in webhook-mode, Supabase als database.
 | 4 | Exchange-labels, filters, throttling, bundelen | ✅ |
 | 5 | `/analyse` (DexScreener + Tavily + Groq) | ✅ |
 | 6 | Dagelijkse digest + opschonen (cron) | ✅ |
-| 7 | Design system | ⏳ wacht op jouw goedkeuring |
-| 8–12 | Website, app, Stripe, admin, deploy | ⏳ |
+| 7 | Design system ("Bridge at night", zie DESIGN.md) | ✅ |
+| 8 | Publieke site: home, feed, wallets, wallet/token-pagina's, prijzen, learn, juridisch, SEO | ✅ |
+| 9 | Login (magic link + Google), dashboard, watchlist, DM-alerts, screenshot-analyse | ✅ |
+| 10 | Stripe, Pro-groep (invite-links, automatisch verwijderen), gratis kanaal | ✅ |
+| 11 | Admin: wallets + CSV-import, instellingen, MRR, alerts/dag, AI-kosten, testalert, fouten | ✅ |
+| 12 | Deploy-handleiding (hieronder) | ✅ |
 
 ## Hoe het werkt
 
@@ -153,6 +157,15 @@ Handmatig testen (met je `CRON_SECRET`):
 curl -H "Authorization: Bearer $CRON_SECRET" "http://localhost:3000/api/cron/digest?force=1"
 ```
 
+## Website lokaal bekijken zonder database (demo-modus)
+
+```bash
+DEMO_DATA=1 npm run dev
+```
+
+Toont nep-transacties met een gele "Demo-data"-balk erboven, zodat je het design kunt beoordelen.
+Werkt alleen als er géén Supabase-keys zijn. **Zet `DEMO_DATA` nooit in Vercel.**
+
 ## Tests
 
 ```bash
@@ -198,3 +211,70 @@ scripts/                     bot-dev, tg:webhook, webhooks:register
 - Webhooks: Telegram secret token, Helius auth header, Alchemy HMAC-signature, cron Bearer secret. Allemaal constant-time vergeleken.
 - RLS staat aan op alle tabellen zonder policies. De website leest alleen `public_events` en `public_wallets`.
   Throttle-functies zijn niet aanroepbaar door anon.
+
+## Deploy op Vercel (fase 12), stap voor stap
+
+### 1. Supabase
+1. Draai de drie migraties in `supabase/migrations/` op volgorde (SQL Editor of `npx supabase db push`).
+2. **Authentication → URL Configuration**: Site URL = `https://jouwdomein.nl`; Redirect URLs: `https://jouwdomein.nl/auth/callback` en `http://localhost:3000/auth/callback`.
+3. **Authentication → Providers → Google**: aanzetten met een OAuth-client uit Google Cloud Console
+   (redirect-URI: `https://<project>.supabase.co/auth/v1/callback`).
+4. Optioneel: eigen SMTP (Resend) voor de magic-link-mails, anders geldt de lage limiet van Supabase.
+
+### 2. Stripe
+1. Maak een product **Pro** met twee prijzen: €19/maand en €149/jaar. Zet de `price_...`-IDs in env.
+2. **Developers → Webhooks**: endpoint `https://jouwdomein.nl/api/webhooks/stripe` met events
+   `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`.
+   De signing secret → `STRIPE_WEBHOOK_SECRET`.
+3. **Settings → Billing → Customer portal**: aanzetten (opzeggen, betaalmethode, facturen).
+4. Lokaal testen:
+
+```bash
+stripe listen --forward-to localhost:3000/api/webhooks/stripe
+```
+
+### 3. Telegram
+- **Hoofdgroep** (alerts): bot admin, typ `/setup`.
+- **Pro-groep** (privé): bot admin met *Gebruikers uitnodigen* en *Gebruikers verbannen*. ID in `TELEGRAM_PRO_GROUP_ID`.
+- **Publiek kanaal** (gratis, 15 min vertraagd): bot admin met *Berichten plaatsen*. ID in `TELEGRAM_PUBLIC_CHANNEL_ID`, link in `NEXT_PUBLIC_TELEGRAM_PUBLIC_URL`.
+- Een chat-ID vind je door de bot een bericht te laten ontvangen en `/setup` te typen, of via @RawDataBot.
+
+### 4. Vercel
+1. Importeer de repo in Vercel. Framework: Next.js (automatisch).
+2. Zet alle variabelen uit `.env.example` in **Settings → Environment Variables** (behalve `DEMO_DATA`).
+   `NEXT_PUBLIC_SITE_URL` = je echte domein.
+3. Deploy. Daarna:
+
+```bash
+npm run tg:webhook -- https://jouwdomein.nl
+```
+
+```bash
+npm run webhooks:register -- https://jouwdomein.nl
+```
+
+4. Zet in Supabase de minuut-cron aan voor dispatch (`supabase/cron.sql`), want Vercel Hobby doet maar 1x per dag.
+   Op Vercel Pro kun je in plaats daarvan `{ "path": "/api/cron/dispatch", "schedule": "* * * * *" }` toevoegen aan `vercel.json`.
+
+> **Let op:** Vercel Hobby mag je niet commercieel gebruiken. Met betalende klanten heb je Vercel Pro nodig.
+
+### 5. Controleren
+- `/admin` → **Testalert sturen** komt in je groep.
+- Stripe testkaart `4242 4242 4242 4242` → je account wordt Pro, je krijgt een invite-link in Telegram.
+- Abonnement opzeggen in het portal (direct beëindigen) → je wordt uit de Pro-groep gehaald en krijgt een DM.
+
+## Hoe abonnementen en toegang werken
+
+```
+Stripe Checkout → webhook → subscriptions-tabel → profiles.plan = pro
+   → (Telegram gekoppeld?) bot stuurt persoonlijke invite-link (1 gebruik, 24 uur)
+Abonnement stopt → webhook → plan = free → bot haalt je uit de Pro-groep + DM met verleng-link
+Dagelijkse cron /api/cron/subscriptions = vangnet als een webhook gemist is
+```
+
+Telegram koppelen: in **Account** klik je *Open in Telegram*; de bot krijgt `/start <code>` en koppelt je account.
+
+## Free vs Pro: hoe de vertraging werkt
+De 15 minuten vertraging zit **in de database-view** `public_events`, niet alleen in de site.
+De anon key is publiek (staat in de browser), dus anders kon iedereen hem met curl omzeilen.
+Pro-gebruikers krijgen realtime data via de server (`/api/feed`, ververst elke 5 seconden).

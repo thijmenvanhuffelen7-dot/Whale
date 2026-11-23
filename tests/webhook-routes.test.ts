@@ -14,6 +14,7 @@ vi.mock("@/lib/alerts/pipeline", () => ({
   logWebhookFailure: vi.fn(),
 }));
 vi.mock("@/lib/bot/instance", () => ({ getBot: () => ({ api: {} }) }));
+vi.mock("@/lib/alerts/user-alerts", () => ({ dispatchUserAlerts: vi.fn() }));
 
 beforeAll(() => {
   process.env.HELIUS_WEBHOOK_AUTH = "helius_auth_secret_123456";

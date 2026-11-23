@@ -26,6 +26,11 @@ export type BotDeps = {
     run: (query: string) => Promise<string | null>;
     log: (userId: number, query: string) => Promise<void>;
   };
+  /** /start <code>: Telegram aan een website-account koppelen. */
+  linkAccount?: (
+    code: string,
+    tg: { id: number; username?: string },
+  ) => Promise<"ok_pro" | "ok_free" | "invalid" | "taken">;
   /** Werk doen nadat de webhook al geantwoord heeft (Vercel `after`). */
   background: (task: () => Promise<unknown>) => void;
 };
@@ -53,7 +58,18 @@ export function createBot(token: string, deps: BotDeps, opts: { botInfo?: BotFul
       return fn(ctx);
     };
 
-  bot.command("start", (ctx) => reply(ctx, m.start + "\n\n" + m.help));
+  bot.command("start", async (ctx) => {
+    const code = (typeof ctx.match === "string" ? ctx.match : "").trim();
+    // Deep link vanaf de site: t.me/<bot>?start=<code>, alleen in een privéchat
+    if (code && ctx.chat?.type === "private" && ctx.from && deps.linkAccount) {
+      if (!/^[a-zA-Z0-9]{8,64}$/.test(code)) return reply(ctx, m.linkInvalid);
+      const res = await deps.linkAccount(code, { id: ctx.from.id, username: ctx.from.username });
+      if (res === "invalid") return reply(ctx, m.linkInvalid);
+      if (res === "taken") return reply(ctx, m.linkTaken);
+      return reply(ctx, m.linked(res === "ok_pro"));
+    }
+    return reply(ctx, m.start + "\n\n" + m.help);
+  });
 
   bot.command("help", async (ctx) => {
     const admin = await isAdmin(ctx);

@@ -84,7 +84,11 @@ export function evaluateEvent(
     return reject("same_owner");
   }
 
-  // 5. Drempel (per-token override > swap-drempel/algemene drempel)
+  // 5. Wallet staat alleen in een watchlist van een gebruiker (niet door ons gevolgd):
+  //    wel opslaan voor DM-alerts, niet in de groep. Token-watch legs (>= 10000) wel.
+  if (!wallet && ev.logIndex < 10_000 && !settings.tokenThresholds.has(tokenAddr)) return reject("watchlist_only");
+
+  // 6. Drempel (per-token override > swap-drempel/algemene drempel)
   const isSwap = type === "swap_buy" || type === "swap_sell";
   const threshold =
     settings.tokenThresholds.get(tokenAddr) ?? (isSwap ? settings.swapThresholdUsd : settings.thresholdUsd);

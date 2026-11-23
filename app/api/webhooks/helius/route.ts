@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { parseHelius } from "@/lib/chain/helius";
 import { dispatchPending, handleChainWebhook, logWebhookFailure } from "@/lib/alerts/pipeline";
 import { getBot } from "@/lib/bot/instance";
+import { dispatchUserAlerts } from "@/lib/alerts/user-alerts";
 import { runInBackground, safeEqual } from "@/lib/http";
 
 export const runtime = "nodejs";
@@ -23,7 +24,13 @@ export async function POST(req: Request) {
 
   try {
     const result = await handleChainWebhook("sol", (tracked, watched) => parseHelius(body, tracked, watched));
-    if (result.alertable > 0) runInBackground(() => dispatchPending(getBot().api));
+    if (result.inserted > 0) {
+      runInBackground(async () => {
+        const api = getBot().api;
+        if (result.alertable > 0) await dispatchPending(api);
+        await dispatchUserAlerts(api);
+      });
+    }
     return NextResponse.json({ ok: true, ...result });
   } catch (err) {
     console.error("[helius] verwerken mislukt", err);

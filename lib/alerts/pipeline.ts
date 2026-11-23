@@ -32,6 +32,15 @@ export async function loadTokenThresholds(chain: Chain): Promise<Map<string, num
   return new Map((data ?? []).map((t) => [normAddr(chain, t.address), Number(t.min_usd_alert)]));
 }
 
+/** Adressen uit de watchlists van gebruikers (voor DM-alerts). */
+export async function loadWatchlistAddresses(chain: Chain): Promise<{ wallets: string[]; tokens: string[] }> {
+  const { data } = await supabaseAdmin().from("watchlist").select("kind, address").eq("chain", chain);
+  return {
+    wallets: (data ?? []).filter((r) => r.kind === "wallet").map((r) => r.address),
+    tokens: (data ?? []).filter((r) => r.kind === "token").map((r) => r.address),
+  };
+}
+
 export function filterSettings(s: Settings, tokenThresholds: Map<string, number>): FilterSettings {
   return {
     thresholdUsd: Number(s.alert_threshold_usd),
@@ -226,11 +235,14 @@ export async function handleChainWebhook(
   chain: Chain,
   parse: (tracked: Set<string>, watched: Set<string>) => NormalizedEvent[],
 ) {
-  const [wallets, settings, thresholds] = await Promise.all([
+  const [wallets, settings, thresholds, watch] = await Promise.all([
     loadWallets(chain),
     getAllSettings(),
     loadTokenThresholds(chain),
+    loadWatchlistAddresses(chain),
   ]);
-  const events = parse(trackedSet(wallets), new Set(thresholds.keys()));
+  const tracked = trackedSet(wallets);
+  for (const a of watch.wallets) tracked.add(a);
+  const events = parse(tracked, new Set([...thresholds.keys(), ...watch.tokens]));
   return ingestEvents(chain, events, { wallets, settings: filterSettings(settings, thresholds) });
 }

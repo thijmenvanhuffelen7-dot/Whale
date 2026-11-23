@@ -104,18 +104,37 @@ function clean(text: string | null | undefined): string | null {
   return t && !containsAdvice(t) ? t : null;
 }
 
+export type AiUsage = { provider: string; model: string; inputTokens: number; outputTokens: number };
+export type Summary = { text: string | null; usage: AiUsage | null };
+
+/** Grove kostenschatting per 1M tokens (USD), voor het admin-dashboard. */
+export const AI_PRICES: Record<string, { in: number; out: number }> = {
+  "llama-3.3-70b-versatile": { in: 0.59, out: 0.79 },
+  "claude-sonnet-5-5": { in: 2, out: 10 },
+  "claude-haiku-5-5": { in: 0.1, out: 0.5 },
+};
+export function aiCost(u: AiUsage): number {
+  const p = AI_PRICES[u.model] ?? { in: 0.5, out: 1 };
+  return (u.inputTokens * p.in + u.outputTokens * p.out) / 1_000_000;
+}
+
 /**
  * Korte, neutrale samenvatting. Groq als GROQ_API_KEY gezet is (standaard),
  * anders Anthropic als ANTHROPIC_API_KEY gezet is, anders null (alleen feiten).
  */
 export async function summarize(facts: string, fetchImpl: typeof fetch = fetch): Promise<string | null> {
+  return (await summarizeDetailed(facts, fetchImpl)).text;
+}
+
+export async function summarizeDetailed(facts: string, fetchImpl: typeof fetch = fetch): Promise<Summary> {
   if (process.env.GROQ_API_KEY) return summarizeGroq(facts, fetchImpl);
   if (process.env.ANTHROPIC_API_KEY) return summarizeAnthropic(facts);
-  return null;
+  return { text: null, usage: null };
 }
 
 /** Groq: OpenAI-compatibele chat completions API. */
-async function summarizeGroq(facts: string, fetchImpl: typeof fetch): Promise<string | null> {
+async function summarizeGroq(facts: string, fetchImpl: typeof fetch): Promise<Summary> {
+  const model = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
   try {
     const res = await fetchImpl("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -124,7 +143,7 @@ async function summarizeGroq(facts: string, fetchImpl: typeof fetch): Promise<st
         authorization: `Bearer ${process.env.GROQ_API_KEY}`,
       },
       body: JSON.stringify({
-        model: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
+        model,
         temperature: 0.2,
         max_tokens: 500,
         messages: [
@@ -136,24 +155,36 @@ async function summarizeGroq(facts: string, fetchImpl: typeof fetch): Promise<st
     });
     if (!res.ok) {
       console.error("[analyse] Groq-call mislukt", res.status, await res.text().catch(() => ""));
-      return null;
+      return { text: null, usage: null };
     }
-    const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
-    return clean(data.choices?.[0]?.message?.content);
+    const data = (await res.json()) as {
+      choices?: { message?: { content?: string } }[];
+      usage?: { prompt_tokens?: number; completion_tokens?: number };
+    };
+    return {
+      text: clean(data.choices?.[0]?.message?.content),
+      usage: {
+        provider: "groq",
+        model,
+        inputTokens: data.usage?.prompt_tokens ?? 0,
+        outputTokens: data.usage?.completion_tokens ?? 0,
+      },
+    };
   } catch (err) {
     console.error("[analyse] Groq-call mislukt", err);
-    return null;
+    return { text: null, usage: null };
   }
 }
 
 let anthropic: Anthropic | null = null;
 
 /** Anthropic (optioneel). Model via ANTHROPIC_MODEL. */
-async function summarizeAnthropic(facts: string): Promise<string | null> {
+async function summarizeAnthropic(facts: string): Promise<Summary> {
   anthropic ??= new Anthropic();
+  const model = process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5";
   try {
     const res = await anthropic.beta.messages.create({
-      model: process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5",
+      model,
       max_tokens: 1024,
       // Sonnet 5.5 accepteert geen temperature; "laag" = thinking uit + lage effort.
       thinking: { type: "between_tools" },
@@ -164,16 +195,25 @@ async function summarizeAnthropic(facts: string): Promise<string | null> {
       system: ANALYSE_SYSTEM_PROMPT,
       messages: [{ role: "user", content: userPrompt(facts) }],
     });
-    if (res.stop_reason === "refusal") return null;
-    return clean(
-      res.content
-        .filter((b) => b.type === "text")
-        .map((b) => (b as { text: string }).text)
-        .join("\n"),
-    );
+    const usage = {
+      provider: "anthropic",
+      model,
+      inputTokens: res.usage.input_tokens,
+      outputTokens: res.usage.output_tokens,
+    };
+    if (res.stop_reason === "refusal") return { text: null, usage };
+    return {
+      text: clean(
+        res.content
+          .filter((b) => b.type === "text")
+          .map((b) => (b as { text: string }).text)
+          .join("\n"),
+      ),
+      usage,
+    };
   } catch (err) {
     console.error("[analyse] Claude-call mislukt", err);
-    return null;
+    return { text: null, usage: null };
   }
 }
 

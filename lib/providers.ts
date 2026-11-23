@@ -12,15 +12,21 @@ const ALCHEMY = "https://dashboard.alchemy.com/api";
 /** Adressen die een webhook moet volgen: actieve niet-exchange wallets + gevolgde tokens. */
 export async function addressesToWatch(chain: Chain): Promise<string[]> {
   const db = supabaseAdmin();
-  const [{ data: w, error: e1 }, { data: t, error: e2 }] = await Promise.all([
+  const [{ data: w, error: e1 }, { data: t, error: e2 }, { data: u }] = await Promise.all([
     db.from("wallets").select("address").eq("chain", chain).eq("active", true).neq("type", "exchange"),
     db.from("tokens_watch").select("address").eq("chain", chain),
+    // Watchlists van gebruikers (tabel bestaat pas na migratie 3)
+    db.from("watchlist").select("address, kind").eq("chain", chain),
   ]);
   if (e1) throw e1;
   if (e2) throw e2;
+  const userWallets = (u ?? []).filter((r) => r.kind === "wallet");
+  const userTokens = (u ?? []).filter((r) => r.kind === "token");
   // Tokens alleen op Solana: daar triggert een mint-adres de webhook. Op ETH
   // vangt Address Activity geen transfers van een token-contract (zie README).
-  const list = [...(w ?? []), ...(chain === "sol" ? (t ?? []) : [])].map((r) => normAddr(chain, r.address));
+  const list = [...(w ?? []), ...userWallets, ...(chain === "sol" ? [...(t ?? []), ...userTokens] : [])].map((r) =>
+    normAddr(chain, r.address),
+  );
   return [...new Set(list)];
 }
 

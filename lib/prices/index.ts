@@ -13,6 +13,8 @@ export type TokenInfo = {
   marketCapUsd: number | null;
   fdvUsd: number | null;
   pairUrl: string | null;
+  /** Pool-adres van het grootste pair (voor de prijs-chart). */
+  pairAddress?: string | null;
   source: "dexscreener" | "coingecko" | "stable";
 };
 
@@ -25,6 +27,7 @@ const cache = new Map<string, { at: number; value: TokenInfo | null }>();
 type DsPair = {
   chainId: string;
   url?: string;
+  pairAddress?: string;
   baseToken: { address: string; name?: string; symbol: string };
   quoteToken: { address: string; symbol: string };
   priceUsd?: string;
@@ -70,6 +73,7 @@ export function pairsToInfo(chain: Chain, address: string, pairs: DsPair[]): Tok
     marketCapUsd: top.marketCap ?? null,
     fdvUsd: top.fdv ?? null,
     pairUrl: top.url ?? null,
+    pairAddress: top.pairAddress ?? null,
     source: "dexscreener",
   };
 }

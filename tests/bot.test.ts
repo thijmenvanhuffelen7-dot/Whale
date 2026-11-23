@@ -184,3 +184,42 @@ describe("/analyse", () => {
     expect(sent()[0]).toContain("Gebruik:");
   });
 });
+
+describe("/start <code> (account koppelen)", () => {
+  const privateStart = (text: string) => ({
+    update_id: 1,
+    message: {
+      message_id: 1,
+      from: { id: 555, is_bot: false, first_name: "A", username: "anna" },
+      chat: { id: 555, type: "private", first_name: "A" },
+      date: 1763884800,
+      text,
+      entities: [{ offset: 0, length: 6, type: "bot_command" }],
+    },
+  });
+
+  it("koppelt met een geldige code en meldt Pro", async () => {
+    const linkAccount = vi.fn(async () => "ok_pro" as const);
+    const { bot, sent } = setup(makeDeps({ linkAccount }));
+    await bot.handleUpdate(privateStart("/start a1b2c3d4e5f6a7b8c9") as never);
+    expect(linkAccount).toHaveBeenCalledWith("a1b2c3d4e5f6a7b8c9", { id: 555, username: "anna" });
+    expect(sent()[0]).toContain("gekoppeld");
+    expect(sent()[0]).toContain("Pro-groep");
+  });
+
+  it("weigert rare codes zonder database-call, en meldt een bezette koppeling", async () => {
+    const linkAccount = vi.fn(async () => "taken" as const);
+    const { bot, sent } = setup(makeDeps({ linkAccount }));
+    await bot.handleUpdate(privateStart("/start ../../etc") as never);
+    expect(linkAccount).not.toHaveBeenCalled();
+    expect(sent()[0]).toContain("werkt niet");
+    await bot.handleUpdate(privateStart("/start a1b2c3d4e5f6a7b8c9") as never);
+    expect(sent()[1]).toContain("al aan een ander");
+  });
+
+  it("zonder code: gewone welkom", async () => {
+    const { bot, sent } = setup();
+    await bot.handleUpdate(privateStart("/start") as never);
+    expect(sent()[0]).toContain("Welkom");
+  });
+});

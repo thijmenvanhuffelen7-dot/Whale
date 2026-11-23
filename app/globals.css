@@ -1,26 +1,136 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Design: "Bridge at night" — zie DESIGN.md */
+@theme {
+  --color-bg: #06090d;
+  --color-surface: #0b1118;
+  --color-surface-2: #111a24;
+  --color-line: #1a2633;
+  --color-line-strong: #263646;
+  --color-ink: #e7edf3;
+  --color-ink-2: #93a6b8;
+  --color-ink-3: #6b7f92;
+  --color-amber: #ffb547;
+  --color-amber-ink: #1a1206;
+  --color-amber-dim: #3a2a10;
+  --color-buy: #4ade9b;
+  --color-sell: #ff6b6b;
+  --color-flow: #7cb7ff;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-display: "Archivo Variable", var(--font-geist-sans), sans-serif;
+
+  --radius-ctl: 6px;
+  --radius-panel: 10px;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-overlay: 0 8px 24px rgb(0 0 0 / 0.45);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    color-scheme: dark;
+    background: var(--color-bg);
+  }
+  body {
+    background: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: var(--color-amber);
+    color: var(--color-amber-ink);
+  }
+  * {
+    caret-color: var(--color-amber);
+    scrollbar-color: var(--color-line-strong) transparent;
+    scrollbar-width: thin;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-amber);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  a {
+    text-underline-offset: 3px;
+  }
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%2393a6b8' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 32px;
+  }
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* Display-koppen: condensed Archivo, zoals de lettering op een zeekaart */
+  .display {
+    font-family: var(--font-display);
+    font-stretch: 78%;
+    font-weight: 750;
+    letter-spacing: -0.02em;
+    line-height: 0.95;
+  }
+  /* Getallen en adressen */
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
 }
+
+/* Sonar-ping: de ene signatuur-animatie (DESIGN.md) */
+@keyframes ping-ring {
+  from { transform: scale(1); opacity: 0.7; }
+  to { transform: scale(3.2); opacity: 0; }
+}
+.ping-ring {
+  animation: ping-ring 1.1s var(--ease-out-expo) 1 both;
+}
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.live-pulse {
+  animation: live-pulse 2.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ping-ring, .live-pulse { animation: none; }
+}
+
+/* Lange tekst (learn + juridisch): leesmaat 68ch */
+.prose-whale {
+  max-width: 68ch;
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--color-ink-2);
+}
+.prose-whale > * + * { margin-top: 1.1em; }
+.prose-whale h2 {
+  margin-top: 2.2em;
+  font-family: var(--font-display);
+  font-stretch: 82%;
+  font-weight: 700;
+  font-size: 30px;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+}
+.prose-whale h3 { margin-top: 1.8em; font-size: 19px; font-weight: 600; color: var(--color-ink); }
+.prose-whale strong { color: var(--color-ink); font-weight: 600; }
+.prose-whale a { color: var(--color-amber); text-decoration: underline; }
+.prose-whale ul { padding-left: 1.2em; list-style: disc; }
+.prose-whale ul li + li { margin-top: 0.4em; }
+.prose-whale li::marker { color: var(--color-ink-3); }
+.prose-whale code { font-family: var(--font-mono); font-size: 0.9em; color: var(--color-ink); background: var(--color-surface-2); padding: 0.1em 0.35em; border-radius: 4px; }
+.prose-whale blockquote { border-left: 1px solid var(--color-line-strong); padding-left: 1em; color: var(--color-ink); }

@@ -93,6 +93,13 @@ describe("evaluateEvent", () => {
     expect(r.filterReason).toBe("same_owner");
   });
 
+  it("wallet die alleen in een gebruikers-watchlist staat: niet in de groep", () => {
+    const r = evaluateEvent(ev({ walletAddress: "0x7777777777777777777777777777777777777777", amount: 1000 }), {
+      wallets, price: info(WETH, "WETH", 3000), quotePrice: null, settings,
+    });
+    expect(r).toMatchObject({ filterReason: "watchlist_only", walletId: null, usdValue: 3_000_000 });
+  });
+
   it("gepauzeerd = opslaan maar niet melden", () => {
     const r = evaluateEvent(ev({ amount: 1000 }), {
       wallets, price: info(WETH, "WETH", 3000), quotePrice: null, settings: { ...settings, paused: true },

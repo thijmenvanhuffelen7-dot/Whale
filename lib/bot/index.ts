@@ -56,7 +56,11 @@ export function createBot(token: string, deps: BotDeps, opts: { botInfo?: BotFul
   const adminOnly =
     (fn: (ctx: Context) => Promise<unknown>) =>
     async (ctx: Context) => {
-      if (!(await isAdmin(ctx))) return reply(ctx, m.notAdmin);
+      if (!(await isAdmin(ctx))) {
+        // In een privéchat je eigen ID tonen, zodat je hem in TELEGRAM_ADMIN_IDS kunt zetten.
+        const hint = ctx.chat?.type === "private" && ctx.from ? `\n\nYour Telegram ID: <code>${ctx.from.id}</code>` : "";
+        return reply(ctx, m.notAdmin + hint);
+      }
       return fn(ctx);
     };
 

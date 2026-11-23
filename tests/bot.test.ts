@@ -235,3 +235,25 @@ describe("/setup met kapotte database", () => {
     expect(calls.find((c) => c.method === "sendMessage")!.payload.text).toContain("database isn't connected");
   });
 });
+
+describe("admin-herkenning", () => {
+  it("leest TELEGRAM_ADMIN_IDS tolerant (spaties, quotes)", async () => {
+    process.env.TELEGRAM_ADMIN_IDS = ' "111111111" ; 5 ';
+    resetEnvCache();
+    const { bot, sent } = setup(makeDeps(), { [ADMIN]: "member" });
+    await bot.handleUpdate(helpInTopic as never);
+    expect(sent()[0]).toContain("/addwallet");
+  });
+
+  it("toont je eigen ID in een privéchat als je geen admin bent", async () => {
+    const { bot, sent } = setup();
+    await bot.handleUpdate({
+      update_id: 9,
+      message: {
+        message_id: 1, from: { id: 777, is_bot: false, first_name: "X" }, chat: { id: 777, type: "private", first_name: "X" },
+        date: 1, text: "/pause", entities: [{ offset: 0, length: 6, type: "bot_command" }],
+      },
+    } as never);
+    expect(sent()[0]).toContain("Your Telegram ID: <code>777</code>");
+  });
+});

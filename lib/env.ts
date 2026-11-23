@@ -65,8 +65,9 @@ export function requireEnv<K extends keyof Env>(key: K): NonNullable<Env[K]> {
 export function adminIds(): Set<number> {
   return new Set(
     env()
-      .TELEGRAM_ADMIN_IDS.split(",")
-      .map((s) => Number(s.trim()))
+      .TELEGRAM_ADMIN_IDS.split(/[,;\s]+/)
+      // Tolerant: spaties, aanhalingstekens of "id:" eromheen negeren
+      .map((s) => Number(s.replace(/[^0-9]/g, "")))
       .filter((n) => Number.isSafeInteger(n) && n > 0),
   );
 }

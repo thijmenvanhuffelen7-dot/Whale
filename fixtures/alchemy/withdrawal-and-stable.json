@@ -1,0 +1,41 @@
+{
+  "webhookId": "wh_octjglnywaupz6th",
+  "id": "whevt_7b2s1k9xq0m4n5p6",
+  "createdAt": "2026-11-23T08:05:00.000Z",
+  "type": "ADDRESS_ACTIVITY",
+  "event": {
+    "network": "ETH_MAINNET",
+    "activity": [
+      {
+        "fromAddress": "0x28c6c06298d514db089934071355e5743bf21d60",
+        "toAddress": "0xabcdef0123456789abcdef0123456789abcdef01",
+        "blockNum": "0x1478a40",
+        "hash": "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "value": 2500,
+        "asset": "ETH",
+        "category": "external",
+        "rawContract": { "rawValue": "0x878678326eac900000", "address": null, "decimals": 18 }
+      },
+      {
+        "fromAddress": "0xabcdef0123456789abcdef0123456789abcdef01",
+        "toAddress": "0x9999999999999999999999999999999999999999",
+        "blockNum": "0x1478a41",
+        "hash": "0x2222222222222222222222222222222222222222222222222222222222222222",
+        "value": null,
+        "asset": "USDC",
+        "category": "token",
+        "rawContract": { "rawValue": "0x00000000000000000000000000000000000000000000000000000ba43b740000", "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", "decimals": 6 }
+      },
+      {
+        "fromAddress": "0xabcdef0123456789abcdef0123456789abcdef01",
+        "toAddress": "0x5555555555555555555555555555555555555555",
+        "blockNum": "0x1478a42",
+        "hash": "0x3333333333333333333333333333333333333333333333333333333333333333",
+        "value": 1,
+        "asset": "BAYC",
+        "category": "erc721",
+        "rawContract": { "rawValue": null, "address": "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d", "decimals": null }
+      }
+    ]
+  }
+}

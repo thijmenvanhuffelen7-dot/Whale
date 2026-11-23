@@ -1,34 +1,57 @@
 import { Bot, type Context } from "grammy";
 import type { BotFullInfo } from "grammy/types";
+import { type Chain, isEthAddress, isSolAddress, normAddr } from "@/lib/chain/types";
+import { formatUsd } from "@/lib/format";
 import { escapeHtml, shortAddress, t } from "@/lib/messages";
 import { isAdmin } from "@/lib/bot/admin";
 
+export type Topics = { eth: number; sol: number; digest: number };
+
 export type BotDeps = {
-  /** Wallets ophalen voor /wallets. Injecteerbaar voor tests. */
-  listWallets: () => Promise<
-    { chain: string; address: string; label: string; type: string }[]
-  >;
-  /** chat_id + topic opslaan voor /setup. */
-  saveAlertTarget: (chatId: number, topicId: number | undefined) => Promise<void>;
+  listWallets: () => Promise<{ chain: string; address: string; label: string; type: string }[]>;
+  /** chat_id + topics opslaan voor /setup. Zonder topics → hoofdchat of `fallbackTopic`. */
+  saveAlertTarget: (chatId: number, topics: Topics | null, fallbackTopic?: number) => Promise<void>;
+  addWallet: (
+    chain: Chain,
+    address: string,
+    label: string,
+    type: "smart_money" | "whale",
+  ) => Promise<{ existed: boolean; synced: boolean; reason?: string }>;
+  removeWallet: (address: string) => Promise<number>;
+  setThreshold: (usd: number) => Promise<void>;
+  setPaused: (paused: boolean) => Promise<void>;
+  analyse: {
+    /** Hoeveel analyses deze gebruiker vandaag deed, en de limiet. */
+    usage: (userId: number) => Promise<{ used: number; limit: number }>;
+    run: (query: string) => Promise<string | null>;
+    log: (userId: number, query: string) => Promise<void>;
+  };
+  /** Werk doen nadat de webhook al geantwoord heeft (Vercel `after`). */
+  background: (task: () => Promise<unknown>) => void;
 };
 
 const WALLETS_LIMIT = 30;
 
-export function createBot(
-  token: string,
-  deps: BotDeps,
-  opts: { botInfo?: BotFullInfo } = {},
-): Bot {
+export function createBot(token: string, deps: BotDeps, opts: { botInfo?: BotFullInfo } = {}): Bot {
   const bot = new Bot(token, { botInfo: opts.botInfo });
   const m = t();
 
+  const threadOf = (ctx: Context) => (ctx.msg?.is_topic_message ? ctx.msg.message_thread_id : undefined);
   const reply = (ctx: Context, text: string) =>
     ctx.reply(text, {
       parse_mode: "HTML",
       link_preview_options: { is_disabled: true },
-      // In forum-groepen antwoorden in hetzelfde topic.
-      message_thread_id: ctx.msg?.is_topic_message ? ctx.msg.message_thread_id : undefined,
+      message_thread_id: threadOf(ctx),
     });
+  const args = (ctx: Context) => (typeof ctx.match === "string" ? ctx.match.trim().split(/\s+/).filter(Boolean) : []);
+
+  /** Wrapper: alleen admins. */
+  const adminOnly =
+    (fn: (ctx: Context) => Promise<unknown>) =>
+    async (ctx: Context) => {
+      if (!(await isAdmin(ctx))) return reply(ctx, m.notAdmin);
+      return fn(ctx);
+    };
 
   bot.command("start", (ctx) => reply(ctx, m.start + "\n\n" + m.help));
 
@@ -48,26 +71,129 @@ export function createBot(
     return reply(ctx, [m.walletsHeader(wallets.length), "", ...lines].join("\n"));
   });
 
-  // Admin: koppel deze groep (en dit topic) als alert-bestemming.
-  bot.command("setup", async (ctx) => {
-    if (!(await isAdmin(ctx))) return reply(ctx, m.notAdmin);
-    const topicId = ctx.msg.is_topic_message ? ctx.msg.message_thread_id : undefined;
-    await deps.saveAlertTarget(ctx.chat.id, topicId);
-    return reply(ctx, m.setupDone(ctx.chat.id, topicId));
-  });
+  bot.command(
+    "setup",
+    adminOnly(async (ctx) => {
+      const chat = ctx.chat!;
+      const isForum = "is_forum" in chat && chat.is_forum === true;
+      if (!isForum) {
+        await deps.saveAlertTarget(chat.id, null);
+        return reply(ctx, m.setupDone(chat.id, m.setupNoTopics));
+      }
+      try {
+        const [eth, sol, digest] = await Promise.all([
+          ctx.api.createForumTopic(chat.id, m.topicNames.eth),
+          ctx.api.createForumTopic(chat.id, m.topicNames.sol),
+          ctx.api.createForumTopic(chat.id, m.topicNames.digest),
+        ]);
+        await deps.saveAlertTarget(chat.id, {
+          eth: eth.message_thread_id,
+          sol: sol.message_thread_id,
+          digest: digest.message_thread_id,
+        });
+        return reply(ctx, m.setupDone(chat.id, m.setupTopicsCreated));
+      } catch {
+        await deps.saveAlertTarget(chat.id, null, threadOf(ctx));
+        return reply(ctx, m.setupDone(chat.id, m.setupTopicsFailed));
+      }
+    }),
+  );
 
-  // Placeholders voor latere fases, zodat ze niet stil falen.
-  for (const cmd of ["addwallet", "removewallet", "threshold", "pause", "resume"]) {
-    bot.command(cmd, async (ctx) => {
-      if (!(await isAdmin(ctx))) return reply(ctx, m.notAdmin);
-      return reply(ctx, m.comingSoon);
+  bot.command(
+    "addwallet",
+    adminOnly(async (ctx) => {
+      const [chainArg, address, ...rest] = args(ctx);
+      if (!chainArg || !address || !rest.length) return reply(ctx, m.addWalletUsage);
+      const chain = chainArg.toLowerCase();
+      if (chain !== "eth" && chain !== "sol") return reply(ctx, m.invalidChain);
+      const valid = chain === "eth" ? isEthAddress(address) : isSolAddress(address);
+      if (!valid) return reply(ctx, m.invalidAddress(chain));
+
+      let type: "smart_money" | "whale" = "whale";
+      const last = rest[rest.length - 1].toLowerCase();
+      if (rest.length > 1 && (last === "smart_money" || last === "whale")) {
+        type = last;
+        rest.pop();
+      }
+      const label = rest.join(" ").slice(0, 60);
+      if (!label) return reply(ctx, m.addWalletUsage);
+
+      const res = await deps.addWallet(chain, normAddr(chain, address), label, type);
+      if (res.existed) return reply(ctx, m.walletExists);
+      return reply(ctx, m.walletAdded(escapeHtml(label), chain, res.synced, res.reason && escapeHtml(res.reason)));
+    }),
+  );
+
+  bot.command(
+    "removewallet",
+    adminOnly(async (ctx) => {
+      const [address] = args(ctx);
+      if (!address) return reply(ctx, m.removeWalletUsage);
+      return reply(ctx, m.walletRemoved(await deps.removeWallet(address)));
+    }),
+  );
+
+  bot.command(
+    "threshold",
+    adminOnly(async (ctx) => {
+      const raw = (args(ctx)[0] ?? "").replace(/[$_.,]/g, "").replace(/k$/i, "000");
+      const usd = Number(raw);
+      if (!Number.isFinite(usd) || usd < 1000 || usd > 1e10) return reply(ctx, m.thresholdUsage);
+      await deps.setThreshold(usd);
+      return reply(ctx, m.thresholdSet(formatUsd(usd)));
+    }),
+  );
+
+  bot.command(
+    "pause",
+    adminOnly(async (ctx) => {
+      await deps.setPaused(true);
+      return reply(ctx, m.paused);
+    }),
+  );
+  bot.command(
+    "resume",
+    adminOnly(async (ctx) => {
+      await deps.setPaused(false);
+      return reply(ctx, m.resumed);
+    }),
+  );
+
+  bot.command("analyse", async (ctx) => {
+    const query = (typeof ctx.match === "string" ? ctx.match : "").trim().slice(0, 64);
+    if (!query) return reply(ctx, m.analyseUsage);
+    const userId = ctx.from?.id;
+    if (!userId) return;
+
+    if (!(await isAdmin(ctx))) {
+      const { used, limit } = await deps.analyse.usage(userId);
+      if (used >= limit) return reply(ctx, m.analyseLimit(limit));
+    }
+
+    const q = escapeHtml(query);
+    const busy = await reply(ctx, m.analyseBusy(q));
+    // Data ophalen + AI duurt 5-20s: na het webhook-antwoord afmaken.
+    deps.background(async () => {
+      let html: string | null = null;
+      try {
+        html = await deps.analyse.run(query);
+      } catch (e) {
+        console.error("[analyse]", e);
+        await ctx.api.editMessageText(busy.chat.id, busy.message_id, m.error).catch(() => {});
+        return;
+      }
+      if (html) await deps.analyse.log(userId, query);
+      await ctx.api
+        .editMessageText(busy.chat.id, busy.message_id, html ?? m.analyseNotFound(q), {
+          parse_mode: "HTML",
+          link_preview_options: { is_disabled: true },
+        })
+        .catch((e) => console.error("[analyse] edit mislukt", e));
     });
-  }
-  bot.command("analyse", (ctx) => reply(ctx, m.comingSoon));
+  });
 
   bot.catch((err) => {
     console.error("[bot] fout bij update", err.ctx.update.update_id, err.error);
-    // Probeer de gebruiker iets terug te geven; negeer als ook dat faalt.
     err.ctx.reply(m.error).catch(() => {});
   });
 

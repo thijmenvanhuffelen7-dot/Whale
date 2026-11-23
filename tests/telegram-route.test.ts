@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { createBot } from "@/lib/bot/index";
-import { BOT_INFO, interceptApi, type ApiCall } from "./helpers/fake-telegram";
+import { BOT_INFO, interceptApi, makeDeps, type ApiCall } from "./helpers/fake-telegram";
 import helpInTopic from "@/fixtures/telegram/help-in-forum-topic.json";
 
 const SECRET = "test_secret_0123456789abcdef";
@@ -9,7 +9,7 @@ let calls: ApiCall[] = [];
 vi.mock("@/lib/bot/instance", () => {
   const bot = createBot(
     "123456:TEST_TOKEN_NOT_REAL_xxxxxxxxxxxx",
-    { listWallets: async () => [], saveAlertTarget: async () => {} },
+    makeDeps(),
     { botInfo: BOT_INFO },
   );
   return { getBot: () => bot, __bot: bot };

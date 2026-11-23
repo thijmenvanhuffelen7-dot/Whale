@@ -1,0 +1,41 @@
+[
+  {
+    "description": "Whale sends 5000 SOL to Binance",
+    "type": "TRANSFER",
+    "source": "SYSTEM_PROGRAM",
+    "signature": "3vZ67CubQyBZ6vfBeWpFekx4N6CNPAo6ZyfGAZq2YjvwTfwPvTvtY5hbsF8X3S3oSgP7SP8HMtBKGbG9EQBSfSaK",
+    "timestamp": 1763884900,
+    "transactionError": null,
+    "nativeTransfers": [
+      { "fromUserAccount": "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU", "toUserAccount": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM", "amount": 5000000000000 }
+    ],
+    "tokenTransfers": []
+  },
+  {
+    "description": "Failed tx must be ignored",
+    "type": "TRANSFER",
+    "signature": "2FailedTx1111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "timestamp": 1763884901,
+    "transactionError": { "InstructionError": [0, "Custom"] },
+    "nativeTransfers": [
+      { "fromUserAccount": "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU", "toUserAccount": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM", "amount": 9000000000000 }
+    ],
+    "tokenTransfers": []
+  },
+  {
+    "description": "Unrelated wallets moving a watched token (BONK)",
+    "type": "TRANSFER",
+    "signature": "4WatchedTok1111111111111111111111111111111111111111111111111111111111111111111111111",
+    "timestamp": 1763884902,
+    "transactionError": null,
+    "nativeTransfers": [],
+    "tokenTransfers": [
+      {
+        "fromUserAccount": "RandomA1111111111111111111111111111111111111",
+        "toUserAccount": "RandomB1111111111111111111111111111111111111",
+        "tokenAmount": 50000000000,
+        "mint": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"
+      }
+    ]
+  }
+]

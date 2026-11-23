@@ -44,9 +44,35 @@ const nl = {
   comingSoon: "🚧 Dit commando komt in een volgende fase.",
   error: "⚠️ Er ging iets mis. Probeer het later opnieuw.",
 
-  setupDone: (chatId: number, topicId?: number) =>
-    `✅ Deze chat is ingesteld voor alerts.\nchat_id: <code>${chatId}</code>` +
-    (topicId ? `\ntopic: <code>${topicId}</code>` : ""),
+  setupDone: (chatId: number, topics: string) =>
+    `✅ Deze chat is ingesteld voor alerts.\nchat_id: <code>${chatId}</code>\n${topics}`,
+  setupTopicsCreated: "Topics aangemaakt: 🐋 ETH, 🐋 SOL, 📊 Digest.",
+  setupTopicsFailed:
+    "⚠️ Kon geen topics aanmaken (geef de bot het recht <i>Topics beheren</i>). Alerts komen nu in dit topic/de hoofdchat.",
+  setupNoTopics: "Geen forum-topics: alerts komen in de hoofdchat.",
+  topicNames: { eth: "🐋 ETH", sol: "🐋 SOL", digest: "📊 Digest" },
+
+  addWalletUsage:
+    "Gebruik: <code>/addwallet &lt;eth|sol&gt; &lt;adres&gt; &lt;label&gt; [smart_money|whale]</code>",
+  invalidChain: "Chain moet <code>eth</code> of <code>sol</code> zijn.",
+  invalidAddress: (chain: string) => `Dat is geen geldig ${chain.toUpperCase()}-adres.`,
+  walletAdded: (label: string, chain: string, synced: boolean, reason?: string) =>
+    `✅ <b>${label}</b> toegevoegd (${chain.toUpperCase()}).` +
+    (synced ? "" : `\n⚠️ Nog niet bij de webhook aangemeld: ${reason ?? "onbekend"}`),
+  walletExists: "Deze wallet wordt al gevolgd (label bijgewerkt).",
+  removeWalletUsage: "Gebruik: <code>/removewallet &lt;adres&gt;</code>",
+  walletRemoved: (n: number) => (n ? "🗑️ Wallet verwijderd." : "Die wallet werd niet gevolgd."),
+  thresholdUsage: "Gebruik: <code>/threshold &lt;usd&gt;</code>, bv. <code>/threshold 250000</code>",
+  thresholdSet: (usd: string) => `✅ Drempel voor transfers ingesteld op <b>${usd}</b>.`,
+  paused: "⏸️ Alerts gepauzeerd. Nieuwe events worden opgeslagen maar niet gemeld.",
+  resumed: "▶️ Alerts staan weer aan.",
+
+  analyseUsage: "Gebruik: <code>/analyse &lt;ticker of contractadres&gt;</code>, bv. <code>/analyse PEPE</code>",
+  analyseBusy: (q: string) => `⏳ Analyse van <b>${q}</b>…`,
+  analyseNotFound: (q: string) =>
+    `Geen token gevonden voor <b>${q}</b> op Ethereum of Solana. Probeer het contractadres.`,
+  analyseLimit: (limit: number) =>
+    `Je hebt vandaag je ${limit} analyses gebruikt. Morgen kan het weer.`,
 } as const;
 
 export type Messages = typeof nl;

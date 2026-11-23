@@ -2,19 +2,20 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createBot, type BotDeps } from "@/lib/bot/index";
 import { resetEnvCache } from "@/lib/env";
 import { DISCLAIMER } from "@/lib/messages";
-import { BOT_INFO, interceptApi } from "./helpers/fake-telegram";
+import { BOT_INFO, commandUpdate, interceptApi, makeDeps } from "./helpers/fake-telegram";
 import helpInTopic from "@/fixtures/telegram/help-in-forum-topic.json";
 import walletsInGroup from "@/fixtures/telegram/wallets-in-group.json";
 import setupByMember from "@/fixtures/telegram/setup-by-member.json";
 
 const TOKEN = "123456:TEST_TOKEN_NOT_REAL_xxxxxxxxxxxx";
+const ADMIN = 111111111;
+const MEMBER = 222222222;
 
-function makeDeps(overrides: Partial<BotDeps> = {}): BotDeps {
-  return {
-    listWallets: vi.fn(async () => []),
-    saveAlertTarget: vi.fn(async () => {}),
-    ...overrides,
-  };
+function setup(deps: BotDeps = makeDeps(), members: Record<number, "creator" | "administrator" | "member"> = {}) {
+  const bot = createBot(TOKEN, deps, { botInfo: BOT_INFO });
+  const calls = interceptApi(bot, { [ADMIN]: "administrator", ...members });
+  const sent = () => calls.filter((c) => c.method === "sendMessage").map((c) => c.payload.text as string);
+  return { bot, deps, calls, sent };
 }
 
 beforeEach(() => {
@@ -22,80 +23,164 @@ beforeEach(() => {
   resetEnvCache();
 });
 
-describe("bot commands", () => {
+describe("publieke commando's", () => {
   it("/help@bot in een forum topic antwoordt in hetzelfde topic met disclaimer", async () => {
-    const bot = createBot(TOKEN, makeDeps(), { botInfo: BOT_INFO });
-    const calls = interceptApi(bot);
+    const { bot, calls } = setup(makeDeps(), { [ADMIN]: "member" });
     await bot.handleUpdate(helpInTopic as never);
-
-    const send = calls.find((c) => c.method === "sendMessage");
-    expect(send).toBeDefined();
-    expect(send!.payload.chat_id).toBe(-1001234567890);
-    expect(send!.payload.message_thread_id).toBe(7);
-    expect(send!.payload.parse_mode).toBe("HTML");
-    expect(send!.payload.text).toContain("/analyse");
-    expect(send!.payload.text).toContain(DISCLAIMER);
-    // Gewoon lid → geen admin-commando's in de help.
-    expect(send!.payload.text).not.toContain("/addwallet");
+    const send = calls.find((c) => c.method === "sendMessage")!;
+    expect(send.payload.chat_id).toBe(-1001234567890);
+    expect(send.payload.message_thread_id).toBe(7);
+    expect(send.payload.parse_mode).toBe("HTML");
+    expect(send.payload.text).toContain("/analyse");
+    expect(send.payload.text).toContain(DISCLAIMER);
+    expect(send.payload.text).not.toContain("/addwallet");
   });
 
   it("/help toont admin-commando's aan een groepsadmin", async () => {
-    const bot = createBot(TOKEN, makeDeps(), { botInfo: BOT_INFO });
-    const calls = interceptApi(bot, { 111111111: "administrator" });
+    const { bot, sent } = setup();
     await bot.handleUpdate(helpInTopic as never);
-    const send = calls.find((c) => c.method === "sendMessage")!;
-    expect(send.payload.text).toContain("/addwallet");
+    expect(sent()[0]).toContain("/addwallet");
   });
 
-  it("/help toont admin-commando's aan een ID uit TELEGRAM_ADMIN_IDS", async () => {
-    process.env.TELEGRAM_ADMIN_IDS = "5, 111111111";
+  it("/help toont admin-commando's aan een ID uit TELEGRAM_ADMIN_IDS zonder getChatMember", async () => {
+    process.env.TELEGRAM_ADMIN_IDS = `5, ${ADMIN}`;
     resetEnvCache();
-    const bot = createBot(TOKEN, makeDeps(), { botInfo: BOT_INFO });
-    const calls = interceptApi(bot);
+    const { bot, calls, sent } = setup();
     await bot.handleUpdate(helpInTopic as never);
     expect(calls.some((c) => c.method === "getChatMember")).toBe(false);
-    expect(calls.find((c) => c.method === "sendMessage")!.payload.text).toContain("/addwallet");
+    expect(sent()[0]).toContain("/addwallet");
   });
 
   it("/wallets escapet labels en kort adressen in", async () => {
-    const deps = makeDeps({
-      listWallets: async () => [
-        { chain: "eth", address: "0x1234567890abcdef1234567890abcdef12345678", label: "<b>Evil</b> & co", type: "smart_money" },
-        { chain: "sol", address: "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM", label: "Whale 1", type: "whale" },
-      ],
-    });
-    const bot = createBot(TOKEN, deps, { botInfo: BOT_INFO });
-    const calls = interceptApi(bot);
+    const { bot, sent } = setup(
+      makeDeps({
+        listWallets: async () => [
+          { chain: "eth", address: "0x1234567890abcdef1234567890abcdef12345678", label: "<b>Evil</b> & co", type: "smart_money" },
+          { chain: "sol", address: "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM", label: "Whale 1", type: "whale" },
+        ],
+      }),
+    );
     await bot.handleUpdate(walletsInGroup as never);
-    const text = calls.find((c) => c.method === "sendMessage")!.payload.text as string;
+    const text = sent()[0];
     expect(text).toContain("(2)");
     expect(text).toContain("&lt;b&gt;Evil&lt;/b&gt; &amp; co");
     expect(text).toContain("0x1234…5678");
     expect(text).toContain("9WzD…AWWM");
-    expect(text).not.toContain("<b>Evil</b>");
   });
+});
 
-  it("/wallets zonder wallets geeft een nette melding", async () => {
-    const bot = createBot(TOKEN, makeDeps(), { botInfo: BOT_INFO });
-    const calls = interceptApi(bot);
-    await bot.handleUpdate(walletsInGroup as never);
-    expect(calls.find((c) => c.method === "sendMessage")!.payload.text).toContain("nog geen wallets");
-  });
-
-  it("/setup door een gewoon lid wordt geweigerd en slaat niets op", async () => {
-    const deps = makeDeps();
-    const bot = createBot(TOKEN, deps, { botInfo: BOT_INFO });
-    const calls = interceptApi(bot);
+describe("admin-commando's", () => {
+  it("/setup door een gewoon lid wordt geweigerd", async () => {
+    const { bot, deps, sent } = setup();
     await bot.handleUpdate(setupByMember as never);
     expect(deps.saveAlertTarget).not.toHaveBeenCalled();
-    expect(calls.find((c) => c.method === "sendMessage")!.payload.text).toContain("Alleen admins");
+    expect(sent()[0]).toContain("Alleen admins");
   });
 
-  it("/setup door een admin slaat de chat op", async () => {
+  it("/setup zonder forum → hoofdchat", async () => {
+    const { bot, deps } = setup();
+    await bot.handleUpdate(commandUpdate("/setup", { userId: ADMIN }) as never);
+    expect(deps.saveAlertTarget).toHaveBeenCalledWith(-1001234567890, null);
+  });
+
+  it("/setup in een forum maakt drie topics aan", async () => {
+    const { bot, deps, calls } = setup();
+    await bot.handleUpdate(commandUpdate("/setup", { userId: ADMIN, forum: true }) as never);
+    const topics = calls.filter((c) => c.method === "createForumTopic").map((c) => c.payload.name);
+    expect(topics).toEqual(["🐋 ETH", "🐋 SOL", "📊 Digest"]);
+    const [, saved] = (deps.saveAlertTarget as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(saved).toEqual({ eth: expect.any(Number), sol: expect.any(Number), digest: expect.any(Number) });
+  });
+
+  it("/addwallet valideert en normaliseert", async () => {
+    const { bot, deps, sent } = setup();
+    await bot.handleUpdate(commandUpdate("/addwallet eth 0xABCDEF0123456789abcdef0123456789ABCDEF01 Fund A cold smart_money", { userId: ADMIN }) as never);
+    expect(deps.addWallet).toHaveBeenCalledWith("eth", "0xabcdef0123456789abcdef0123456789abcdef01", "Fund A cold", "smart_money");
+    expect(sent()[0]).toContain("Fund A cold");
+
+    await bot.handleUpdate(commandUpdate("/addwallet eth 0x123 Kapot", { userId: ADMIN }) as never);
+    expect(sent()[1]).toContain("geen geldig ETH-adres");
+    await bot.handleUpdate(commandUpdate("/addwallet btc 0x123 x", { userId: ADMIN }) as never);
+    expect(sent()[2]).toContain("eth</code> of <code>sol");
+    await bot.handleUpdate(commandUpdate("/addwallet sol 9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM", { userId: ADMIN }) as never);
+    expect(sent()[3]).toContain("Gebruik:");
+    expect(deps.addWallet).toHaveBeenCalledTimes(1);
+  });
+
+  it("/addwallet meldt het als de webhook-sync mislukt", async () => {
+    const { bot, sent } = setup(makeDeps({ addWallet: async () => ({ existed: false, synced: false, reason: "HELIUS_* env ontbreekt" }) }));
+    await bot.handleUpdate(commandUpdate("/addwallet sol 9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM Whale", { userId: ADMIN }) as never);
+    expect(sent()[0]).toContain("Nog niet bij de webhook aangemeld: HELIUS_* env ontbreekt");
+  });
+
+  it("/threshold accepteert 250k / 250.000 en weigert onzin", async () => {
+    const { bot, deps, sent } = setup();
+    await bot.handleUpdate(commandUpdate("/threshold 250k", { userId: ADMIN }) as never);
+    await bot.handleUpdate(commandUpdate("/threshold 500.000", { userId: ADMIN }) as never);
+    await bot.handleUpdate(commandUpdate("/threshold abc", { userId: ADMIN }) as never);
+    expect(deps.setThreshold).toHaveBeenNthCalledWith(1, 250_000);
+    expect(deps.setThreshold).toHaveBeenNthCalledWith(2, 500_000);
+    expect(deps.setThreshold).toHaveBeenCalledTimes(2);
+    expect(sent()[0]).toContain("$250.000");
+    expect(sent()[2]).toContain("Gebruik:");
+  });
+
+  it("/pause en /resume, maar niet voor leden", async () => {
+    const { bot, deps } = setup();
+    await bot.handleUpdate(commandUpdate("/pause", { userId: MEMBER }) as never);
+    expect(deps.setPaused).not.toHaveBeenCalled();
+    await bot.handleUpdate(commandUpdate("/pause", { userId: ADMIN }) as never);
+    await bot.handleUpdate(commandUpdate("/resume", { userId: ADMIN }) as never);
+    expect(deps.setPaused).toHaveBeenNthCalledWith(1, true);
+    expect(deps.setPaused).toHaveBeenNthCalledWith(2, false);
+  });
+});
+
+describe("/analyse", () => {
+  it("stuurt eerst 'bezig', bewerkt daarna het bericht met het resultaat en logt", async () => {
+    const tasks: Promise<unknown>[] = [];
+    const deps = makeDeps({ background: (t) => void tasks.push(t()) });
+    const { bot, calls } = setup(deps);
+    await bot.handleUpdate(commandUpdate("/analyse pepe", { userId: MEMBER }) as never);
+    await Promise.all(tasks);
+    expect(calls.find((c) => c.method === "sendMessage")!.payload.text).toContain("Analyse van <b>pepe</b>");
+    const edit = calls.find((c) => c.method === "editMessageText")!;
+    expect(edit.payload.text).toBe("<b>analyse</b>");
+    expect(deps.analyse.run).toHaveBeenCalledWith("pepe");
+    expect(deps.analyse.log).toHaveBeenCalledWith(MEMBER, "pepe");
+  });
+
+  it("respecteert de daglimiet voor leden", async () => {
     const deps = makeDeps();
-    const bot = createBot(TOKEN, deps, { botInfo: BOT_INFO });
-    interceptApi(bot, { 222222222: "creator" });
-    await bot.handleUpdate(setupByMember as never);
-    expect(deps.saveAlertTarget).toHaveBeenCalledWith(-1001234567890, undefined);
+    deps.analyse.usage = vi.fn(async () => ({ used: 5, limit: 5 }));
+    const { bot, sent } = setup(deps);
+    await bot.handleUpdate(commandUpdate("/analyse pepe", { userId: MEMBER }) as never);
+    expect(sent()[0]).toContain("5 analyses gebruikt");
+    expect(deps.analyse.run).not.toHaveBeenCalled();
+  });
+
+  it("admins hebben geen limiet", async () => {
+    const deps = makeDeps();
+    deps.analyse.usage = vi.fn(async () => ({ used: 99, limit: 5 }));
+    const { bot } = setup(deps);
+    await bot.handleUpdate(commandUpdate("/analyse pepe", { userId: ADMIN }) as never);
+    expect(deps.analyse.run).toHaveBeenCalled();
+  });
+
+  it("niet gevonden → nette melding, niet gelogd", async () => {
+    const tasks: Promise<unknown>[] = [];
+    const deps = makeDeps({ background: (t) => void tasks.push(t()) });
+    deps.analyse.run = vi.fn(async () => null);
+    const { bot, calls } = setup(deps);
+    await bot.handleUpdate(commandUpdate("/analyse <xx>", { userId: MEMBER }) as never);
+    await Promise.all(tasks);
+    expect(calls.find((c) => c.method === "editMessageText")!.payload.text).toContain("Geen token gevonden voor <b>&lt;xx&gt;</b>");
+    expect(deps.analyse.log).not.toHaveBeenCalled();
+  });
+
+  it("zonder argument → uitleg", async () => {
+    const { bot, sent } = setup();
+    await bot.handleUpdate(commandUpdate("/analyse", { userId: MEMBER }) as never);
+    expect(sent()[0]).toContain("Gebruik:");
   });
 });

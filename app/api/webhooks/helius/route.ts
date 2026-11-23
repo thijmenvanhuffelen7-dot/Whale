@@ -4,13 +4,14 @@ import { dispatchPending, handleChainWebhook, logWebhookFailure } from "@/lib/al
 import { getBot } from "@/lib/bot/instance";
 import { dispatchUserAlerts } from "@/lib/alerts/user-alerts";
 import { runInBackground, safeEqual } from "@/lib/http";
+import { heliusAuth } from "@/lib/providers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
-  const expected = process.env.HELIUS_WEBHOOK_AUTH;
+  const expected = heliusAuth();
   if (!expected || !safeEqual(req.headers.get("authorization"), expected)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }

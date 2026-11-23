@@ -1,4 +1,4 @@
-# 🐋 Whale Alert
+# 🐋 Orcawatch
 
 Telegram-bot + webapp die whale- en smart-money-activiteit op Ethereum en Solana volgt.
 Next.js (App Router) op Vercel, grammY in webhook-mode, Supabase als database.
@@ -6,7 +6,7 @@ Next.js (App Router) op Vercel, grammY in webhook-mode, Supabase als database.
 > Informatietool. Geen financieel advies, geen wallet-koppeling, geen trades.
 
 **Taal:** site en bot zijn Engelstalig. Bot in het Nederlands: `BOT_LANG=nl`.
-**Naam:** de merknaam staat op één plek: `NEXT_PUBLIC_BRAND_NAME` (standaard nog "Whale Alert", dat is een bestaand merk: kies een eigen naam vóór livegang).
+**Naam:** de merknaam staat op één plek: `NEXT_PUBLIC_BRAND_NAME` (standaard "Orcawatch").
 
 ## Status
 

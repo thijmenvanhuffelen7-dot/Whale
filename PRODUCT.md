@@ -1,4 +1,4 @@
-# Product (werknaam, naam volgt)
+# Product: Orcawatch
 
 ## Wat het is
 Een informatietool die publieke on-chain activiteit van grote wallets ("whales") en

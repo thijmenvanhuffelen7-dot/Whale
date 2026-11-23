@@ -16,19 +16,19 @@ export type DigestRow = {
 };
 
 const TYPE_LABEL: Record<string, string> = {
-  swap_buy: "kocht",
-  swap_sell: "verkocht",
-  transfer: "verstuurde",
-  exchange_deposit: "stortte naar exchange",
-  exchange_withdrawal: "haalde van exchange",
+  swap_buy: "bought",
+  swap_sell: "sold",
+  transfer: "sent",
+  exchange_deposit: "deposited to exchange",
+  exchange_withdrawal: "withdrew from exchange",
 };
 
 /** Bouw het digest-bericht. Puur, zodat het makkelijk te testen is. */
 export function buildDigest(rows: DigestRow[], dateLabel: string): string {
-  const out = [`📊 <b>Dagelijkse digest — ${escapeHtml(dateLabel)}</b>`, ""];
+  const out = [`📊 <b>Daily digest — ${escapeHtml(dateLabel)}</b>`, ""];
 
   if (!rows.length) {
-    out.push("Geen meldingswaardige activiteit in de afgelopen 24 uur.", "", `<i>${DISCLAIMER}</i>`);
+    out.push("No notable activity in the last 24 hours.", "", `<i>${DISCLAIMER}</i>`);
     return out.join("\n");
   }
 
@@ -39,7 +39,7 @@ export function buildDigest(rows: DigestRow[], dateLabel: string): string {
 
   // 1. Grootste moves
   const top = [...rows].sort((a, b) => usd(b) - usd(a)).slice(0, 5);
-  out.push("<b>🐋 Grootste moves</b>");
+  out.push("<b>🐋 Biggest moves</b>");
   top.forEach((r, i) => {
     out.push(
       `${i + 1}. ${who(r)} ${TYPE_LABEL[r.type] ?? r.type} ${compact(Number(r.amount))} ${sym(r)} (~${formatUsd(usd(r))}) · ${r.chain.toUpperCase()} · <a href="${explorerTxUrl(r.chain, r.tx_hash)}">tx</a>`,
@@ -58,7 +58,7 @@ export function buildDigest(rows: DigestRow[], dateLabel: string): string {
   }
   const active = [...byWallet.values()].sort((a, b) => b.count - a.count || b.usd - a.usd).slice(0, 5);
   if (active.length) {
-    out.push("", "<b>🔥 Meest actieve wallets</b>");
+    out.push("", "<b>🔥 Most active wallets</b>");
     for (const w of active) out.push(`• ${w.label}: ${w.count} tx (~${formatUsd(w.usd)})`);
   }
 
@@ -74,7 +74,7 @@ export function buildDigest(rows: DigestRow[], dateLabel: string): string {
   }
   const shared = [...buys.values()].filter((t) => t.wallets.size >= 2).sort((a, b) => b.wallets.size - a.wallets.size);
   if (shared.length) {
-    out.push("", "<b>🧠 Gekocht door meerdere gevolgde wallets</b>");
+    out.push("", "<b>🧠 Bought by several tracked wallets</b>");
     for (const t of shared.slice(0, 5)) {
       out.push(
         `• <a href="${dexscreenerUrl(t.row.chain, t.row.token_address)}">${sym(t.row)}</a> (${t.row.chain.toUpperCase()}): ${t.wallets.size} wallets, ~${formatUsd(t.usd)}`,

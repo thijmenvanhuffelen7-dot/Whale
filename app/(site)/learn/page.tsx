@@ -4,16 +4,16 @@ import { ArrowRight } from "lucide-react";
 import { ARTICLES } from "@/lib/learn";
 
 export const metadata: Metadata = {
-  title: "Leren",
-  description: "Uitleg over smart money, whales en exchange-flows: wat on-chain data wel en niet vertelt.",
+  title: "Learn",
+  description: "Guides on smart money, whales and exchange flows: what on-chain data does and doesn't tell you.",
   alternates: { canonical: "/learn" },
 };
 
 export default function LearnIndex() {
   return (
     <div className="mx-auto max-w-[880px] px-4 py-16 sm:px-6">
-      <h1 className="display text-[56px] sm:text-[76px]">Leren</h1>
-      <p className="mt-4 max-w-[52ch] text-[17px] text-ink-2">Wat on-chain data je vertelt, en wat niet.</p>
+      <h1 className="display text-[56px] sm:text-[76px]">Learn</h1>
+      <p className="mt-4 max-w-[52ch] text-[17px] text-ink-2">What on-chain data tells you, and what it doesn’t.</p>
       <ul className="mt-12 divide-y divide-line border-y border-line">
         {ARTICLES.map((a) => (
           <li key={a.slug}>

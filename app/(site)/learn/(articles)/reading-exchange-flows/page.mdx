@@ -1,0 +1,24 @@
+export const metadata = {
+  title: "Reading exchange deposits and withdrawals",
+  description: "What a deposit to or withdrawal from an exchange does and doesn't tell you, and why context is everything.",
+  alternates: { canonical: "/learn/reading-exchange-flows" },
+};
+
+# Reading exchange deposits and withdrawals
+
+When a large wallet sends tokens to an exchange, you see a **deposit**. When it takes them off, it's a **withdrawal**. We recognize these using a list of known wallets of Binance, Coinbase, Kraken, OKX and Bybit.
+
+## The common reading
+
+On an exchange you can sell; in your own wallet you can't directly. That's why a large deposit is often read as "maybe someone wants to sell", and a large withdrawal as "someone is moving it off the exchange to hold it". That's a reasonable first question, not a conclusion.
+
+## Why it's often something else
+
+- **Internal moves.** Exchanges shuffle between their own hot and cold wallets. That's why we filter out moves between wallets of the same owner.
+- **Collateral.** Tokens on an exchange can serve as collateral for derivatives without being sold.
+- **OTC and clients.** Market makers move funds for clients, not for themselves.
+- **Stablecoins.** A large USDC deposit can mean someone *wants to buy*.
+
+## How to actually use it
+
+Look at patterns rather than single alerts. Has the same wallet been depositing roughly the same amount every week? Then one deposit is nothing special. Does a wallet that was quiet for years suddenly make a big deposit? That's more unusual. On a wallet page you can see exchange inflows and outflows per day, so you can spot such a pattern.

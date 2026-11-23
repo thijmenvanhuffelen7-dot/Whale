@@ -15,14 +15,14 @@ export default async function AdminWallets({ searchParams }: { searchParams: Pro
   return (
     <div className="flex flex-col gap-6">
       <h1 className="display text-[40px] sm:text-[48px]">Wallets &amp; labels</h1>
-      <Panel title="Toevoegen of bulk importeren">
+      <Panel title="Add or bulk import">
         <ImportForm />
       </Panel>
       <Panel
         title={`${wallets?.length ?? 0} wallets`}
         action={
           <nav className="flex gap-1 text-[13px]">
-            {[["", "Alle"], ["smart_money", "Smart money"], ["whale", "Whales"], ["exchange", "Exchanges"]].map(([v, l]) => (
+            {[["", "All"], ["smart_money", "Smart money"], ["whale", "Whales"], ["exchange", "Exchanges"]].map(([v, l]) => (
               <a key={v} href={v ? `?type=${v}` : "?"} className={cn("rounded px-2 py-1", (type ?? "") === v ? "bg-surface-2 text-ink" : "text-ink-2 hover:text-ink")}>{l}</a>
             ))}
           </nav>
@@ -41,11 +41,11 @@ export default async function AdminWallets({ searchParams }: { searchParams: Pro
               <form action={toggleWallet} className="hidden md:block">
                 <input type="hidden" name="id" value={w.id} />
                 <input type="hidden" name="active" value={String(!w.active)} />
-                <button className="text-[13px] text-ink-2 hover:text-ink">{w.active ? "Pauzeren" : "Activeren"}</button>
+                <button className="text-[13px] text-ink-2 hover:text-ink">{w.active ? "Pause" : "Activate"}</button>
               </form>
               <form action={deleteWallet}>
                 <input type="hidden" name="id" value={w.id} />
-                <button className="text-[13px] text-ink-3 hover:text-sell" aria-label={`${w.label} verwijderen`}>Verwijderen</button>
+                <button className="text-[13px] text-ink-3 hover:text-sell" aria-label={`Delete ${w.label}`}>Delete</button>
               </form>
             </li>
           ))}

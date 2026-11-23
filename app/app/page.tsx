@@ -26,31 +26,31 @@ export default async function Dashboard() {
       {!p.telegram_user_id && (
         <div className="flex flex-col gap-3 rounded-[var(--radius-panel)] border border-amber/40 bg-amber-dim/40 p-5 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-[15px]">
-            <span className="font-medium text-ink">Koppel Telegram</span>
-            <span className="text-ink-2"> om alerts voor je watchlist in je DM te krijgen{p.plan === "pro" ? " en toegang tot de Pro-groep." : "."}</span>
+            <span className="font-medium text-ink">Link Telegram</span>
+            <span className="text-ink-2"> to get watchlist alerts in your DMs{p.plan === "pro" ? " and access to the Pro group." : "."}</span>
           </p>
-          <ButtonLink href="/app/account#telegram" size="sm"><Send className="size-4" /> Koppelen</ButtonLink>
+          <ButtonLink href="/app/account#telegram" size="sm"><Send className="size-4" /> Link</ButtonLink>
         </div>
       )}
 
       <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
-        <Panel title="Mijn alerts" action={<Link href="/app/watchlist" className="text-[13px] text-ink-2 hover:text-ink">Watchlist ({list.length})</Link>} bodyClassName="p-0 sm:p-0">
+        <Panel title="My alerts" action={<Link href="/app/watchlist" className="text-[13px] text-ink-2 hover:text-ink">Watchlist ({list.length})</Link>} bodyClassName="p-0 sm:p-0">
           {mine.length ? (
             <div className="divide-y divide-line">{mine.map((e) => <AlertRow key={e.id} e={e} compactMode />)}</div>
           ) : (
             <div className="px-5">
               <Empty
-                title={list.length ? "Nog geen activiteit van je watchlist." : "Je volgt nog niets."}
-                action={!list.length && <ButtonLink href="/wallets" size="sm">Kies wallets om te volgen <ArrowRight className="size-4" /></ButtonLink>}
+                title={list.length ? "No activity from your watchlist yet." : "You're not following anything yet."}
+                action={!list.length && <ButtonLink href="/wallets" size="sm">Pick wallets to follow <ArrowRight className="size-4" /></ButtonLink>}
               >
-                {list.length ? "Zodra een wallet of token uit je watchlist beweegt, zie je het hier." : "Voeg wallets of tokens toe aan je watchlist en krijg alleen de meldingen die jij wilt."}
+                {list.length ? "As soon as a wallet or token from your watchlist moves, you'll see it here." : "Add wallets or tokens to your watchlist and get only the alerts you want."}
               </Empty>
             </div>
           )}
         </Panel>
 
         <div className="flex flex-col gap-6">
-          <Panel title="Markt-pulse: grootste moves, 24 uur" bodyClassName="p-0 sm:p-0">
+          <Panel title="Market pulse: biggest moves, 24h" bodyClassName="p-0 sm:p-0">
             {biggest.length ? (
               <ul>
                 {biggest.map((e) => (
@@ -64,10 +64,10 @@ export default async function Dashboard() {
                 ))}
               </ul>
             ) : (
-              <div className="px-5"><Empty title="Rustig op het water." /></div>
+              <div className="px-5"><Empty title="Calm waters." /></div>
             )}
           </Panel>
-          <Panel title="Meeste whale-volume per token, 24 uur" bodyClassName="p-0 sm:p-0">
+          <Panel title="Most whale volume per token, 24h" bodyClassName="p-0 sm:p-0">
             {hotTokens.length ? (
               <ul>
                 {hotTokens.map((t) => (
@@ -80,12 +80,12 @@ export default async function Dashboard() {
                 ))}
               </ul>
             ) : (
-              <div className="px-5"><Empty title="Nog geen data." /></div>
+              <div className="px-5"><Empty title="No data yet." /></div>
             )}
           </Panel>
         </div>
       </div>
-      {p.plan !== "pro" && <p className="text-[13px] text-ink-3">Je ziet alles met 15 minuten vertraging. <Link href="/pricing" className="text-amber underline">Pro is realtime.</Link></p>}
+      {p.plan !== "pro" && <p className="text-[13px] text-ink-3">You see everything with a 15-minute delay. <Link href="/pricing" className="text-amber underline">Pro is real-time.</Link></p>}
     </div>
   );
 }

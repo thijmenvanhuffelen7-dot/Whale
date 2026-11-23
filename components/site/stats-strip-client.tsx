@@ -2,7 +2,7 @@
 import { CountUp } from "@/components/ui/count-up";
 import { formatUsd } from "@/lib/format";
 
-const int = new Intl.NumberFormat("nl-NL");
+const int = new Intl.NumberFormat("en-US");
 
 export function CountUpUsd({ value }: { value: number }) {
   return <CountUp value={value} format={(n) => formatUsd(n)} />;

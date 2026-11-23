@@ -47,38 +47,38 @@ function headline(wallet: AlertWallet, events: AlertEvent[]): string {
     const e = events[0];
     switch (e.type) {
       case "swap_buy":
-        return `${icon} ${who} koopt — ${chain}`;
+        return `${icon} ${who} buys — ${chain}`;
       case "swap_sell":
-        return `${icon} ${who} verkoopt — ${chain}`;
+        return `${icon} ${who} sells — ${chain}`;
       case "exchange_deposit":
-        return `🏦 Storting naar ${escapeHtml(e.counterpartyLabel ?? "exchange")} — ${chain}`;
+        return `🏦 Deposit to ${escapeHtml(e.counterpartyLabel ?? "exchange")} — ${chain}`;
       case "exchange_withdrawal":
-        return `🏦 Opname van ${escapeHtml(e.counterpartyLabel ?? "exchange")} — ${chain}`;
+        return `🏦 Withdrawal from ${escapeHtml(e.counterpartyLabel ?? "exchange")} — ${chain}`;
       case "transfer":
-        return `🐋 Whale-transfer — ${chain}`;
+        return `🐋 Whale transfer — ${chain}`;
     }
   }
-  return `${icon} ${who}: ${events.length} transacties — ${chain}`;
+  return `${icon} ${who}: ${events.length} transactions — ${chain}`;
 }
 
 function line(e: AlertEvent): string {
   const amt = `${compact(e.amount)} ${sym(e.tokenSymbol)} (~${formatUsd(e.usdValue)})`;
   const quote =
-    e.quoteSymbol && e.quoteAmount ? ` met ${compact(e.quoteAmount)} ${sym(e.quoteSymbol)}` : "";
+    e.quoteSymbol && e.quoteAmount ? ` with ${compact(e.quoteAmount)} ${sym(e.quoteSymbol)}` : "";
   const cp = e.counterparty
     ? escapeHtml(e.counterpartyLabel ?? shortAddress(e.counterparty))
     : null;
   switch (e.type) {
     case "swap_buy":
-      return `Kocht: ${amt}${quote}`;
+      return `Bought: ${amt}${quote}`;
     case "swap_sell":
-      return `Verkocht: ${amt}${e.quoteSymbol && e.quoteAmount ? ` voor ${compact(e.quoteAmount)} ${sym(e.quoteSymbol)}` : ""}`;
+      return `Sold: ${amt}${e.quoteSymbol && e.quoteAmount ? ` for ${compact(e.quoteAmount)} ${sym(e.quoteSymbol)}` : ""}`;
     case "exchange_deposit":
-      return `Stortte: ${amt}${cp ? ` naar ${cp}` : ""}`;
+      return `Deposited: ${amt}${cp ? ` to ${cp}` : ""}`;
     case "exchange_withdrawal":
-      return `Haalde op: ${amt}${cp ? ` van ${cp}` : ""}`;
+      return `Withdrew: ${amt}${cp ? ` from ${cp}` : ""}`;
     case "transfer":
-      return `Verstuurd: ${amt}${cp ? ` → ${cp}` : ""}`;
+      return `Sent: ${amt}${cp ? ` → ${cp}` : ""}`;
   }
 }
 
@@ -88,7 +88,7 @@ function links(e: AlertEvent): string {
 
 /** Eén bericht per wallet; meerdere events worden gebundeld. */
 export function formatAlert(wallet: AlertWallet, events: AlertEvent[]): string {
-  const name = wallet.label ? `<b>${escapeHtml(wallet.label)}</b>` : "Onbekende wallet";
+  const name = wallet.label ? `<b>${escapeHtml(wallet.label)}</b>` : "Unknown wallet";
   const out = [
     `<b>${headline(wallet, events)}</b>`,
     `Wallet: ${name} (<code>${escapeHtml(shortAddress(wallet.address))}</code>)`,
@@ -99,7 +99,7 @@ export function formatAlert(wallet: AlertWallet, events: AlertEvent[]): string {
     for (const e of events.slice(0, 10)) {
       out.push("", line(e), links(e));
     }
-    if (events.length > 10) out.push("", `… en nog ${events.length - 10}`);
+    if (events.length > 10) out.push("", `… and ${events.length - 10} more`);
   }
   return out.join("\n");
 }

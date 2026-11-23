@@ -20,12 +20,12 @@ export async function identifyFromScreenshot(base64: string, mime: string, fetch
         {
           role: "system",
           content:
-            'Je herkent welke cryptocurrency op een screenshot staat. Antwoord ALLEEN met JSON: {"ticker": string|null, "contract": string|null, "chain": "ethereum"|"solana"|null}. Lees een contractadres alleen over als het volledig zichtbaar is. Geef geen mening of advies.',
+            'You identify which cryptocurrency is shown on a screenshot. Answer ONLY with JSON: {"ticker": string|null, "contract": string|null, "chain": "ethereum"|"solana"|null}. Only copy a contract address if it is fully visible. Give no opinion or advice.',
         },
         {
           role: "user",
           content: [
-            { type: "text", text: "Welke coin staat hierop?" },
+            { type: "text", text: "Which coin is this?" },
             { type: "image_url", image_url: { url: `data:${mime};base64,${base64}` } },
           ],
         },

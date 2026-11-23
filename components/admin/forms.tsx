@@ -16,7 +16,7 @@ export function TestAlertButton() {
   const [state, action, pending] = useActionState<AdminState>(async () => sendTestAlert(), null);
   return (
     <form action={action} className="flex flex-wrap items-center gap-3">
-      <Button variant="ghost" size="sm" disabled={pending}>{pending ? "Versturen…" : "Testalert sturen"}</Button>
+      <Button variant="ghost" size="sm" disabled={pending}>{pending ? "Sending…" : "Send test alert"}</Button>
       <Status state={state} />
     </form>
   );
@@ -26,7 +26,7 @@ export function ImportForm() {
   const [state, action, pending] = useActionState<AdminState, FormData>(importWallets, null);
   return (
     <form action={action} className="flex flex-col gap-4">
-      <Field label="Plak CSV" hint="chain,address,label[,type][,entity] — type: smart_money, whale of exchange. Eén wallet per regel.">
+      <Field label="Paste CSV" hint="chain,address,label[,type][,entity] — type: smart_money, whale or exchange. One wallet per line.">
         <textarea
           name="csv"
           rows={5}
@@ -35,11 +35,11 @@ export function ImportForm() {
           className={inputClass + " num h-auto py-2 text-[13px]"}
         />
       </Field>
-      <Field label="Of upload een .csv">
+      <Field label="Or upload a .csv">
         <input type="file" name="file" accept=".csv,text/csv" className="text-sm text-ink-2 file:mr-3 file:rounded file:border-0 file:bg-surface-2 file:px-3 file:py-1.5 file:text-ink" />
       </Field>
       <div className="flex items-center gap-4">
-        <Button disabled={pending}>{pending ? "Importeren…" : "Opslaan"}</Button>
+        <Button disabled={pending}>{pending ? "Importing…" : "Save"}</Button>
         <Status state={state} />
       </div>
     </form>
@@ -55,17 +55,17 @@ export function SettingsForm({ s }: { s: Record<string, number | boolean> }) {
   );
   return (
     <form action={action} className="grid gap-5 sm:grid-cols-2">
-      {num("alert_threshold_usd", "Drempel transfers en exchange-flows (USD)", "Ook via /threshold in de bot.")}
-      {num("swap_threshold_usd", "Drempel smart-money-swaps (USD)", "Swaps zijn meestal kleiner dan transfers.")}
-      {num("min_liquidity_usd", "Minimale liquiditeit (USD)", "Daaronder = spam/dust, niet melden.")}
-      {num("throttle_seconds", "Throttle per wallet (seconden)", "Max. 1 bericht per wallet per …; de rest wordt gebundeld.")}
-      {num("analyse_daily_limit", "/analyse per gebruiker per dag (Telegram)", "Admins hebben geen limiet.")}
+      {num("alert_threshold_usd", "Threshold for transfers and exchange flows (USD)", "Also via /threshold in the bot.")}
+      {num("swap_threshold_usd", "Threshold for smart-money swaps (USD)", "Swaps are usually smaller than transfers.")}
+      {num("min_liquidity_usd", "Minimum liquidity (USD)", "Below this = spam/dust, not posted.")}
+      {num("throttle_seconds", "Throttle per wallet (seconds)", "Max. 1 message per wallet per …; the rest is bundled.")}
+      {num("analyse_daily_limit", "/analyze per user per day (Telegram)", "Admins have no limit.")}
       <label className="flex items-center gap-3 self-end pb-2">
         <input type="checkbox" name="alerts_paused" defaultChecked={Boolean(s.alerts_paused)} className="size-4 accent-[var(--color-amber)]" />
-        <span className="text-sm">Alerts gepauzeerd</span>
+        <span className="text-sm">Alerts paused</span>
       </label>
       <div className="flex items-center gap-4 sm:col-span-2">
-        <Button disabled={pending}>{pending ? "Opslaan…" : "Opslaan"}</Button>
+        <Button disabled={pending}>{pending ? "Saving…" : "Save"}</Button>
         <Status state={state} />
       </div>
     </form>

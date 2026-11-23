@@ -19,10 +19,10 @@ export const TYPE_META: Record<
   FeedEvent["type"],
   { label: string; tone: "buy" | "sell" | "flow" | "neutral"; Icon: typeof ArrowUpRight }
 > = {
-  swap_buy: { label: "Koopt", tone: "buy", Icon: ShoppingCart },
-  swap_sell: { label: "Verkoopt", tone: "sell", Icon: BadgeDollarSign },
-  exchange_deposit: { label: "Naar exchange", tone: "flow", Icon: ArrowUpRight },
-  exchange_withdrawal: { label: "Van exchange", tone: "flow", Icon: ArrowDownLeft },
+  swap_buy: { label: "Buy", tone: "buy", Icon: ShoppingCart },
+  swap_sell: { label: "Sell", tone: "sell", Icon: BadgeDollarSign },
+  exchange_deposit: { label: "To exchange", tone: "flow", Icon: ArrowUpRight },
+  exchange_withdrawal: { label: "From exchange", tone: "flow", Icon: ArrowDownLeft },
   transfer: { label: "Transfer", tone: "neutral", Icon: MoveRight },
 };
 

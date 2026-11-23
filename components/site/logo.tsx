@@ -1,3 +1,5 @@
+import { SITE } from "@/lib/site";
+
 /** Merkteken: een sonar-ping. Eén punt, twee bogen. */
 export function Logo({ className }: { className?: string }) {
   return (
@@ -8,7 +10,7 @@ export function Logo({ className }: { className?: string }) {
         <path d="M5 4.5A14.5 14.5 0 0 1 19.5 19" stroke="var(--color-amber)" strokeOpacity=".45" strokeWidth="2" fill="none" strokeLinecap="round" />
       </svg>
       <span className="display text-[22px] leading-none tracking-[-0.01em]" style={{ fontStretch: "88%" }}>
-        Whale Alert
+        {SITE.name}
       </span>
     </span>
   );

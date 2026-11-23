@@ -7,10 +7,10 @@ export default function NotFound() {
       <Link href="/">
         <Logo />
       </Link>
-      <h1 className="display text-[56px]">Niets op de sonar.</h1>
-      <p className="text-ink-2">Deze pagina bestaat niet, of de wallet of het token is (nog) niet bekend bij ons.</p>
+      <h1 className="display text-[56px]">Nothing on the sonar.</h1>
+      <p className="text-ink-2">This page doesn’t exist, or we don’t know this wallet or token (yet).</p>
       <Link href="/" className="text-amber underline">
-        Terug naar home
+        Back to home
       </Link>
     </div>
   );

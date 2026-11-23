@@ -1,0 +1,30 @@
+export const metadata = {
+  title: "How to read a whale alert",
+  description: "Every line of an alert explained: type, amount, wallet label and the links to the explorer and DexScreener.",
+  alternates: { canonical: "/learn/how-to-read-a-whale-alert" },
+};
+
+# How to read a whale alert
+
+An alert in Telegram looks roughly like this:
+
+> **Smart money buys — SOL**
+> Wallet: Fund A (7xKX…gAsU)
+> Bought: 12.4M $BONK (~$84,200) with 120 $SOL
+> Solscan · DexScreener
+
+## Line by line
+
+- **The headline** says what happened and on which chain: buys, sells, transfer, deposit to or withdrawal from an exchange.
+- **Wallet** is the label we gave the address, followed by a shortened address. Click through on the website to see every transaction of that wallet.
+- **The amount** is shown in tokens and in dollars. The dollar value uses the price at the moment we saw the transaction, not the moment of the transaction itself.
+- **With** or **for** shows what was on the other side of a swap.
+- **The links** go to the transaction in the explorer (Etherscan or Solscan) and to the token on DexScreener.
+
+## Why you don't see every transaction
+
+We only post what is above a threshold, and we skip tokens with very little liquidity, because that is often spam. When one wallet makes many swaps in a short time, we bundle them into one message so your group doesn't get flooded.
+
+## What an alert is not
+
+An alert is not a tip. It's a fact: this wallet did this. What it means depends on context we don't know. Want more background on a token? Use <code>/analyze</code> in the group.

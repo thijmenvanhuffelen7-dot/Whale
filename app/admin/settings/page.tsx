@@ -6,7 +6,7 @@ export default async function AdminSettings() {
   const s = await getAllSettings();
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="display text-[40px] sm:text-[48px]">Instellingen</h1>
+      <h1 className="display text-[40px] sm:text-[48px]">Settings</h1>
       <Panel title="Alerts">
         <SettingsForm
           s={{
@@ -20,8 +20,8 @@ export default async function AdminSettings() {
         />
       </Panel>
       <Panel title="Telegram">
-        <p className="num text-sm text-ink-2">chat_id: {String(s.chat_id ?? "niet ingesteld")} · topics ETH {String(s.topic_eth ?? "—")} / SOL {String(s.topic_sol ?? "—")} / digest {String(s.topic_digest ?? "—")}</p>
-        <p className="mt-2 text-[13px] text-ink-3">Wijzigen: typ /setup in de groep.</p>
+        <p className="num text-sm text-ink-2">chat_id: {String(s.chat_id ?? "not set")} · topics ETH {String(s.topic_eth ?? "—")} / SOL {String(s.topic_sol ?? "—")} / digest {String(s.topic_digest ?? "—")}</p>
+        <p className="mt-2 text-[13px] text-ink-3">To change: type /setup in the group.</p>
       </Panel>
     </div>
   );

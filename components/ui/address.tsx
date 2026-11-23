@@ -13,7 +13,7 @@ export function Address({ value, full = false, className }: { value: string; ful
       </span>
       <button
         type="button"
-        aria-label={copied ? "Gekopieerd" : "Kopieer adres"}
+        aria-label={copied ? "Copied" : "Copy address"}
         onClick={() => {
           navigator.clipboard?.writeText(value).then(() => {
             setCopied(true);

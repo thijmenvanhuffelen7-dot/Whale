@@ -5,7 +5,7 @@ import { parseVisionAnswer } from "@/lib/analyse/vision";
 import { feedQueryString, parseFeedParams } from "@/lib/feed-params";
 import { exchangeFlowsByDay, tokenFlowsByDay, type FeedEvent } from "@/lib/data";
 import { isActiveStatus } from "@/lib/stripe";
-import { timeAgo } from "@/lib/time";
+import { timeAgo, timeShort } from "@/lib/time";
 
 describe("CSV-import van wallets", () => {
   it("parset geldige regels, normaliseert ETH en slaat header/commentaar over", () => {
@@ -31,7 +31,7 @@ describe("CSV-import van wallets", () => {
     const { rows, errors } = parseWalletCsv("btc,abc,x\neth,0x123,kapot\nsol,7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU,\neth,0x28c6c06298d514db089934071355e5743bf21d60,X,degen");
     expect(rows).toHaveLength(0);
     expect(errors).toHaveLength(4);
-    expect(errors[0]).toContain("Regel 1");
+    expect(errors[0]).toContain("Row 1");
   });
 });
 
@@ -90,10 +90,11 @@ describe("diversen", () => {
     expect(isActiveStatus("canceled")).toBe(false);
     expect(isActiveStatus("unpaid")).toBe(false);
   });
-  it("relatieve tijd in het Nederlands", () => {
+  it("relatieve tijd (Engels)", () => {
     const now = Date.parse("2026-11-23T10:00:00Z");
-    expect(timeAgo("2026-11-23T09:59:50Z", now)).toBe("zojuist");
+    expect(timeAgo("2026-11-23T09:59:50Z", now)).toBe("just now");
     expect(timeAgo("2026-11-23T09:55:00Z", now)).toMatch(/5 min/);
-    expect(timeAgo("2026-11-23T07:00:00Z", now)).toMatch(/3 uur/);
+    expect(timeAgo("2026-11-23T07:00:00Z", now)).toMatch(/3 hr/);
+    expect(timeShort("2026-11-23T07:00:00Z", now)).toBe("3h");
   });
 });

@@ -11,7 +11,7 @@ export function LoginForm({ next, configured }: { next: string; configured: bool
   const [error, setError] = useState("");
 
   if (!configured) {
-    return <p className="text-sm text-ink-2">Inloggen werkt zodra Supabase is ingesteld (NEXT_PUBLIC_SUPABASE_URL en ANON_KEY).</p>;
+    return <p className="text-sm text-ink-2">Login works once Supabase is configured (NEXT_PUBLIC_SUPABASE_URL and ANON_KEY).</p>;
   }
 
   const redirectTo = () => `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
@@ -19,9 +19,9 @@ export function LoginForm({ next, configured }: { next: string; configured: bool
   if (state === "sent") {
     return (
       <div role="status" className="flex flex-col gap-2">
-        <p className="text-[17px] font-medium">Check je mail.</p>
-        <p className="text-sm text-ink-2">We stuurden een inloglink naar <span className="text-ink">{email}</span>. Hij werkt één keer en verloopt na een uur.</p>
-        <button onClick={() => setState("idle")} className="mt-2 self-start text-sm text-amber underline">Ander e-mailadres</button>
+        <p className="text-[17px] font-medium">Check your email.</p>
+        <p className="text-sm text-ink-2">We sent a login link to <span className="text-ink">{email}</span>. It works once and expires after an hour.</p>
+        <button onClick={() => setState("idle")} className="mt-2 self-start text-sm text-amber underline">Use a different email</button>
       </div>
     );
   }
@@ -34,7 +34,7 @@ export function LoginForm({ next, configured }: { next: string; configured: bool
         onClick={async () => {
           const { error } = await supabaseBrowser().auth.signInWithOAuth({ provider: "google", options: { redirectTo: redirectTo() } });
           if (error) {
-            setError("Inloggen met Google lukte niet. Probeer het met je e-mail.");
+            setError("Google sign-in failed. Try with your email instead.");
             setState("error");
           }
         }}
@@ -42,11 +42,11 @@ export function LoginForm({ next, configured }: { next: string; configured: bool
         <svg viewBox="0 0 24 24" className="size-4" aria-hidden>
           <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.6 3.8-5.5 3.8-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.2 14.6 2.2 12 2.2 6.6 2.2 2.2 6.6 2.2 12s4.4 9.8 9.8 9.8c5.7 0 9.4-4 9.4-9.6 0-.6-.1-1.1-.2-1.6H12z" />
         </svg>
-        Doorgaan met Google
+        Continue with Google
       </Button>
 
       <div className="flex items-center gap-3 text-[12px] text-ink-3">
-        <span className="h-px flex-1 bg-line" /> of met e-mail <span className="h-px flex-1 bg-line" />
+        <span className="h-px flex-1 bg-line" /> or with email <span className="h-px flex-1 bg-line" />
       </div>
 
       <form
@@ -56,12 +56,12 @@ export function LoginForm({ next, configured }: { next: string; configured: bool
           setState("sending");
           const { error } = await supabaseBrowser().auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo() } });
           if (error) {
-            setError(error.status === 429 ? "Te veel pogingen. Wacht een minuut en probeer opnieuw." : "Versturen lukte niet. Klopt je e-mailadres?");
+            setError(error.status === 429 ? "Too many attempts. Wait a minute and try again." : "Sending failed. Is your email address correct?");
             setState("error");
           } else setState("sent");
         }}
       >
-        <label htmlFor="email" className="text-[13px] font-medium text-ink-2">E-mailadres</label>
+        <label htmlFor="email" className="text-[13px] font-medium text-ink-2">Email address</label>
         <input
           id="email"
           type="email"
@@ -69,11 +69,11 @@ export function LoginForm({ next, configured }: { next: string; configured: bool
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="jij@voorbeeld.nl"
+          placeholder="you@example.com"
           className={inputClass + " h-12 text-[15px]"}
         />
         <Button size="lg" disabled={state === "sending"}>
-          <Mail className="size-4" /> {state === "sending" ? "Versturen…" : "Stuur inloglink"}
+          <Mail className="size-4" /> {state === "sending" ? "Sending…" : "Send login link"}
         </Button>
         {state === "error" && <p role="alert" className="text-sm text-sell">{error}</p>}
       </form>

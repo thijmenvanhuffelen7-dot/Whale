@@ -10,7 +10,7 @@ import { cn } from "@/lib/cn";
 
 /** Eén regel in de feed. `fresh` = net binnen: de status-dot zendt een sonar-ping uit. */
 export function AlertRow({ e, fresh = false, compactMode = false }: { e: FeedEvent; fresh?: boolean; compactMode?: boolean }) {
-  const who = e.wallet_label ?? (e.wallet_address ? shortAddress(e.wallet_address) : "Onbekend");
+  const who = e.wallet_label ?? (e.wallet_address ? shortAddress(e.wallet_address) : "Unknown");
   const sym = e.token_symbol ?? "TOKEN";
   return (
     <div
@@ -76,7 +76,7 @@ export function AlertRow({ e, fresh = false, compactMode = false }: { e: FeedEve
           href={explorerTxUrl(e.chain, e.tx_hash)}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="Bekijk transactie"
+          aria-label="View transaction"
           className="hidden justify-self-end text-ink-3 transition-colors hover:text-ink md:block"
         >
           <ExternalLink className="size-4" />

@@ -30,19 +30,19 @@ export async function importWallets(_: AdminState, form: FormData): Promise<Admi
   const file = form.get("file");
   const text = file instanceof File && file.size ? await file.text() : String(form.get("csv") ?? "");
   const { rows, errors } = parseWalletCsv(text);
-  if (!rows.length) return { error: errors[0] ?? "Geen geldige regels gevonden." };
+  if (!rows.length) return { error: errors[0] ?? "No valid rows found." };
   const { error } = await supabaseAdmin()
     .from("wallets")
     .upsert(rows.map((r) => ({ ...r, active: true })), { onConflict: "chain,address" });
-  if (error) return { error: `Opslaan mislukt: ${error.message}` };
+  if (error) return { error: `Saving failed: ${error.message}` };
   const syncErrors = await syncProviders(rows);
   revalidatePath("/admin/wallets");
   return {
     ok: true,
     message:
-      `${rows.length} wallet(s) opgeslagen.` +
-      (errors.length ? ` ${errors.length} regel(s) overgeslagen: ${errors.slice(0, 3).join("; ")}` : "") +
-      (syncErrors.length ? ` Let op: ${syncErrors.join("; ")}` : ""),
+      `${rows.length} wallet(s) saved.` +
+      (errors.length ? ` ${errors.length} row(s) skipped: ${errors.slice(0, 3).join("; ")}` : "") +
+      (syncErrors.length ? ` Note: ${syncErrors.join("; ")}` : ""),
   };
 }
 
@@ -70,12 +70,12 @@ export async function saveSettings(_: AdminState, form: FormData): Promise<Admin
   await requireAdmin();
   for (const k of NUMERIC) {
     const v = Number(String(form.get(k) ?? "").replace(/[^\d.]/g, ""));
-    if (!Number.isFinite(v) || v < 0) return { error: `Ongeldige waarde voor ${k}` };
+    if (!Number.isFinite(v) || v < 0) return { error: `Invalid value for ${k}` };
     await setSetting(k, v as never);
   }
   await setSetting("alerts_paused", form.get("alerts_paused") === "on");
   revalidatePath("/admin/settings");
-  return { ok: true, message: "Instellingen opgeslagen." };
+  return { ok: true, message: "Settings saved." };
 }
 
 /** Testalert naar de groep (ETH-topic), om de koppeling te controleren. */
@@ -83,10 +83,10 @@ export async function sendTestAlert(): Promise<AdminState> {
   await requireAdmin();
   const s = await getAllSettings();
   const chatId = s.chat_id ?? (process.env.TELEGRAM_CHAT_ID ? Number(process.env.TELEGRAM_CHAT_ID) : null);
-  if (!chatId) return { error: "Geen chat ingesteld. Typ /setup in je groep." };
+  if (!chatId) return { error: "No chat set up. Type /setup in your group." };
   const html =
-    "🧪 <b>Testalert</b>\n\n" +
-    formatAlert({ address: "0x28c6c06298d514db089934071355e5743bf21d60", label: "Voorbeeld (test)", type: "whale" }, [
+    "🧪 <b>Test alert</b>\n\n" +
+    formatAlert({ address: "0x28c6c06298d514db089934071355e5743bf21d60", label: "Example (test)", type: "whale" }, [
       {
         chain: "eth", txHash: "0x0", type: "exchange_deposit", tokenAddress: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
         tokenSymbol: "ETH", amount: 1, usdValue: null, counterparty: null, counterpartyLabel: "Binance", quoteSymbol: null, quoteAmount: null,
@@ -94,8 +94,8 @@ export async function sendTestAlert(): Promise<AdminState> {
     ]);
   try {
     await sendWithRetry(getBot().api, chatId, html, { threadId: s.topic_eth });
-    return { ok: true, message: "Verstuurd. Check je groep." };
+    return { ok: true, message: "Sent. Check your group." };
   } catch (e) {
-    return { error: `Versturen mislukt: ${e instanceof Error ? e.message : String(e)}` };
+    return { error: `Sending failed: ${e instanceof Error ? e.message : String(e)}` };
   }
 }

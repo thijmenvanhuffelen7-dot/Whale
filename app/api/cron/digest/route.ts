@@ -39,7 +39,10 @@ export async function GET(req: Request) {
     .limit(5000);
   if (error) throw error;
 
-  const html = buildDigest((data ?? []) as DigestRow[], now.date.split("-").reverse().join("-"));
+  const html = buildDigest(
+    (data ?? []) as DigestRow[],
+    new Date(`${now.date}T12:00:00Z`).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
+  );
   try {
     await sendWithRetry(getBot().api, chatId, html, { threadId: settings.topic_digest });
     // Pas na succesvol versturen markeren, zodat de 07:00-run het nog kan proberen.

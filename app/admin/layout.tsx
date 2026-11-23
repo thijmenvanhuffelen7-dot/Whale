@@ -7,9 +7,9 @@ export const metadata: Metadata = { title: "Admin", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
 const NAV = [
-  ["/admin", "Overzicht"],
+  ["/admin", "Overview"],
   ["/admin/wallets", "Wallets & labels"],
-  ["/admin/settings", "Instellingen"],
+  ["/admin/settings", "Settings"],
   ["/app", "← App"],
 ];
 

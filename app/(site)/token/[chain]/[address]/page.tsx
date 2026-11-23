@@ -34,8 +34,8 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const t = await getTokenInfo(p.chain, p.address);
   if (!t) return {};
   return {
-    title: `$${t.symbol}: whale-activiteit en prijs`,
-    description: `Prijs, liquiditeit en welke gevolgde whales ${t.name ?? t.symbol} kopen of verkopen op ${p.chain === "eth" ? "Ethereum" : "Solana"}.`,
+    title: `$${t.symbol}: whale activity and price`,
+    description: `Price, liquidity and which tracked whales buy or sell ${t.name ?? t.symbol} on ${p.chain === "eth" ? "Ethereum" : "Solana"}.`,
     alternates: { canonical: `/token/${p.chain}/${p.address}` },
   };
 }
@@ -77,7 +77,7 @@ export default async function TokenPage({ params }: { params: Promise<Params> })
           </h1>
           <div className="mt-3 flex flex-wrap items-baseline gap-x-5 gap-y-2">
             <span className="num text-[28px] font-medium">{formatPrice(token.priceUsd)}</span>
-            <span className={cn("num text-[15px]", change == null ? "text-ink-3" : change >= 0 ? "text-buy" : "text-sell")}>{formatPct(change)} 24u</span>
+            <span className={cn("num text-[15px]", change == null ? "text-ink-3" : change >= 0 ? "text-buy" : "text-sell")}>{formatPct(change)} 24h</span>
             <Address value={token.address} className="text-sm" />
           </div>
         </div>
@@ -86,10 +86,10 @@ export default async function TokenPage({ params }: { params: Promise<Params> })
 
       <dl className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-panel)] border border-line bg-line sm:grid-cols-4">
         {[
-          ["Volume 24u", formatUsd(token.volume24hUsd)],
-          ["Liquiditeit", Number.isFinite(token.liquidityUsd) ? formatUsd(token.liquidityUsd) : "—"],
+          ["24h volume", formatUsd(token.volume24hUsd)],
+          ["Liquidity", Number.isFinite(token.liquidityUsd) ? formatUsd(token.liquidityUsd) : "—"],
           ["Market cap", formatUsd(token.marketCapUsd ?? token.fdvUsd)],
-          ["Gevolgde wallets", String(wallets.length)],
+          ["Tracked wallets", String(wallets.length)],
         ].map(([k, v]) => (
           <div key={k} className="bg-surface px-5 py-4">
             <dt className="text-[12px] text-ink-3">{k}</dt>
@@ -99,30 +99,30 @@ export default async function TokenPage({ params }: { params: Promise<Params> })
       </dl>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-        <Panel title="Prijs, 7 dagen" action={<a href={token.pairUrl ?? dexscreenerUrl(p.chain, p.address)} target="_blank" rel="noopener noreferrer" className="text-[12px] text-ink-2 hover:text-ink">DexScreener</a>}>
-          {candles.length > 1 ? <PriceChart data={candles} /> : <Empty title="Geen prijsgeschiedenis beschikbaar." />}
+        <Panel title="Price, 7 days" action={<a href={token.pairUrl ?? dexscreenerUrl(p.chain, p.address)} target="_blank" rel="noopener noreferrer" className="text-[12px] text-ink-2 hover:text-ink">DexScreener</a>}>
+          {candles.length > 1 ? <PriceChart data={candles} /> : <Empty title="No price history available." />}
         </Panel>
-        <Panel title="Samenvatting">
+        <Panel title="Summary">
           {analysis?.summary ? (
             <div className="flex flex-col gap-4">
               <p className="whitespace-pre-line text-[15px] leading-relaxed text-ink">{analysis.summary}</p>
-              <p className="text-[12px] text-ink-3">Max. 1x per uur ververst. {DISCLAIMER}</p>
+              <p className="text-[12px] text-ink-3">Refreshed at most once an hour. {DISCLAIMER}</p>
             </div>
           ) : (
-            <Empty title="Nog geen samenvatting.">Er is nog niet genoeg data, of de AI-samenvatting staat uit. {DISCLAIMER}</Empty>
+            <Empty title="No summary yet.">There isn’t enough data yet, or the AI summary is turned off. {DISCLAIMER}</Empty>
           )}
         </Panel>
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-        <Panel title="Whale-instroom vs. -uitstroom, 14 dagen" action={<span className="flex gap-3 text-[12px]"><span className="text-buy">● in</span><span className="text-sell">● uit</span></span>}>
+        <Panel title="Whale inflow vs. outflow, 14 days" action={<span className="flex gap-3 text-[12px]"><span className="text-buy">● in</span><span className="text-sell">● out</span></span>}>
           {flows.some((f) => f.buy || f.sell) ? (
-            <FlowChart data={flows} inKey="buy" outKey="sell" inLabel="Instroom" outLabel="Uitstroom" />
+            <FlowChart data={flows} inKey="buy" outKey="sell" inLabel="Inflow" outLabel="Outflow" />
           ) : (
-            <Empty title="Geen whale-activiteit in deze periode." />
+            <Empty title="No whale activity in this period." />
           )}
         </Panel>
-        <Panel title="Gevolgde wallets in dit token" bodyClassName="p-0 sm:p-0">
+        <Panel title="Tracked wallets in this token" bodyClassName="p-0 sm:p-0">
           {wallets.length ? (
             <ul>
               {wallets.map((w) => (
@@ -130,20 +130,20 @@ export default async function TokenPage({ params }: { params: Promise<Params> })
                   <Link href={`/wallet/${p.chain}/${w.address}`} className="flex items-center justify-between gap-4 px-5 py-3 hover:bg-surface-2">
                     <span className="truncate font-medium">{w.label}</span>
                     <span className="num shrink-0 text-[13px]">
-                      <span className="text-buy">{w.buys} in</span> · <span className="text-sell">{w.sells} uit</span>
+                      <span className="text-buy">{w.buys} in</span> · <span className="text-sell">{w.sells} out</span>
                     </span>
                   </Link>
                 </li>
               ))}
             </ul>
           ) : (
-            <div className="px-5"><Empty title="Geen gevolgde wallet heeft dit token verhandeld." /></div>
+            <div className="px-5"><Empty title="No tracked wallet has traded this token." /></div>
           )}
         </Panel>
       </div>
 
-      <Panel title="Laatste meldingen" className="mt-6" bodyClassName="p-0 sm:p-0">
-        {events.length ? <div className="divide-y divide-line">{events.slice(0, 30).map((e) => <AlertRow key={e.id} e={e} />)}</div> : <div className="px-5"><Empty title="Nog geen meldingen voor dit token." /></div>}
+      <Panel title="Latest alerts" className="mt-6" bodyClassName="p-0 sm:p-0">
+        {events.length ? <div className="divide-y divide-line">{events.slice(0, 30).map((e) => <AlertRow key={e.id} e={e} />)}</div> : <div className="px-5"><Empty title="No alerts for this token yet." /></div>}
       </Panel>
     </div>
   );

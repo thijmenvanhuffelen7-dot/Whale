@@ -5,20 +5,20 @@ import { cn } from "@/lib/cn";
 import { inputClass } from "@/components/ui/panel";
 
 const CHAINS = [
-  ["", "Alle chains"],
+  ["", "All chains"],
   ["eth", "Ethereum"],
   ["sol", "Solana"],
 ];
 const TYPES = [
-  ["", "Alle types"],
-  ["swap_buy", "Kopen"],
-  ["swap_sell", "Verkopen"],
-  ["exchange_deposit", "Naar exchange"],
-  ["exchange_withdrawal", "Van exchange"],
+  ["", "All types"],
+  ["swap_buy", "Buys"],
+  ["swap_sell", "Sells"],
+  ["exchange_deposit", "To exchange"],
+  ["exchange_withdrawal", "From exchange"],
   ["transfer", "Transfers"],
 ];
 const MIN = [
-  ["", "Elk bedrag"],
+  ["", "Any amount"],
   ["50000", "> $50K"],
   ["250000", "> $250K"],
   ["1000000", "> $1M"],
@@ -64,12 +64,12 @@ export function FeedFilters() {
     >
       {select("chain", CHAINS, "Chain")}
       {select("type", TYPES, "Type")}
-      {select("minUsd", MIN, "Minimaal bedrag")}
+      {select("minUsd", MIN, "Minimum amount")}
       <input
         name="token"
         defaultValue={params.get("token") ?? ""}
-        placeholder="Token: ticker of adres"
-        aria-label="Filter op token"
+        placeholder="Token: ticker or address"
+        aria-label="Filter by token"
         className={cn(inputClass, "sm:w-60")}
       />
     </form>

@@ -24,12 +24,12 @@ export async function grantProAccess(api: Api, userId: string): Promise<boolean>
   await api.sendMessage(
     p.telegram_user_id,
     [
-      "🐋 <b>Welkom bij Pro!</b>",
+      "🐋 <b>Welcome to Pro!</b>",
       "",
-      `Je persoonlijke invite-link voor de Pro-groep (24 uur geldig, werkt één keer):`,
+      "Your personal invite link for the Pro group (valid for 24 hours, works once):",
       escapeHtml(link.invite_link),
       "",
-      "Alerts voor je watchlist komen vanaf nu ook hier in je DM.",
+      "Alerts for your watchlist will also arrive here in your DMs from now on.",
     ].join("\n"),
     { parse_mode: "HTML", link_preview_options: { is_disabled: true } },
   );
@@ -52,7 +52,7 @@ export async function revokeProAccess(api: Api, userId: string): Promise<void> {
   await api
     .sendMessage(
       p.telegram_user_id,
-      `Je Pro-abonnement is gestopt, dus je bent uit de Pro-groep gehaald.\n\nWil je verder? Verlengen kan hier: ${SITE.url}/pricing`,
+      `Your Pro subscription has ended, so you have been removed from the Pro group.\n\nWant to continue? Renew here: ${SITE.url}/pricing`,
       { link_preview_options: { is_disabled: true } },
     )
     .catch(() => {});

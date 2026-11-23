@@ -175,7 +175,7 @@ export function createBot(token: string, deps: BotDeps, opts: { botInfo?: BotFul
     }),
   );
 
-  bot.command("analyse", async (ctx) => {
+  bot.command(["analyze", "analyse"], async (ctx) => {
     const query = (typeof ctx.match === "string" ? ctx.match : "").trim().slice(0, 64);
     if (!query) return reply(ctx, m.analyseUsage);
     const userId = ctx.from?.id;
@@ -218,7 +218,7 @@ export function createBot(token: string, deps: BotDeps, opts: { botInfo?: BotFul
 
 /** Commando's zoals ze in het Telegram-menu verschijnen. */
 export const BOT_COMMANDS = [
-  { command: "analyse", description: "Feiten en context over een coin" },
-  { command: "wallets", description: "Gevolgde wallets" },
-  { command: "help", description: "Uitleg en commando's" },
+  { command: "analyze", description: "Facts and context on a coin" },
+  { command: "wallets", description: "Tracked wallets" },
+  { command: "help", description: "How it works and commands" },
 ];

@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { SITE } from "@/lib/site";
 
 export const OG_SIZE = { width: 1200, height: 630 };
 
@@ -22,7 +23,7 @@ export function ogImage({ kicker, title, lines }: { kicker: string; title: strin
       >
         <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 30, color: "#ffb547" }}>
           <div style={{ width: 18, height: 18, borderRadius: 9, background: "#ffb547" }} />
-          Whale Alert · {kicker}
+          {SITE.name} · {kicker}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <div style={{ fontSize: 88, fontWeight: 800, letterSpacing: -2, lineHeight: 1 }}>{title}</div>

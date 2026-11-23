@@ -7,9 +7,9 @@ import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
-  title: { default: `${SITE.name}: whale- en smart-money-alerts`, template: `%s · ${SITE.name}` },
+  title: { default: `${SITE.name}: whale and smart-money alerts`, template: `%s · ${SITE.name}` },
   description: SITE.description,
-  openGraph: { siteName: SITE.name, locale: "nl_NL", type: "website" },
+  openGraph: { siteName: SITE.name, locale: "en_US", type: "website" },
   twitter: { card: "summary_large_image" },
   alternates: { canonical: "/" },
 };
@@ -21,7 +21,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="nl" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body className="min-h-dvh">{children}</body>
     </html>
   );

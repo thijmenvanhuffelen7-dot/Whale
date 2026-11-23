@@ -17,18 +17,18 @@ describe("digest", () => {
         row({ wallet_address: "B", wallet_label: "Whale B", usd_value: 40_000, tx_hash: "t2" }),
         row({ wallet_address: "B", wallet_label: "Whale B", type: "exchange_deposit", token_symbol: "SOL", token_address: "SOL", tx_hash: "t3" }),
       ],
-      "23-11-2026",
+      "November 23, 2026",
     );
-    expect(html).toContain("Dagelijkse digest — 23-11-2026");
-    expect(html).toMatch(/1\. Whale A kocht .*\$900\.000/);
+    expect(html).toContain("Daily digest — November 23, 2026");
+    expect(html).toMatch(/1\. Whale A bought .*\$900,000/);
     expect(html).toContain("Whale B: 2 tx");
-    expect(html).toContain("Gekocht door meerdere gevolgde wallets");
+    expect(html).toContain("Bought by several tracked wallets");
     expect(html).toContain("2 wallets");
     expect(html).toContain(DISCLAIMER);
   });
 
   it("lege dag", () => {
-    expect(buildDigest([], "x")).toContain("Geen meldingswaardige activiteit");
+    expect(buildDigest([], "x")).toContain("No notable activity");
   });
 
   it("08:00 Amsterdam valt in de winter op 07:00 UTC en in de zomer op 06:00 UTC", () => {
@@ -49,6 +49,9 @@ describe("analyse", () => {
   it("advies-filter vangt koop/voorspel-taal maar laat feiten door", () => {
     expect(containsAdvice("Dit is een goed moment, koop nu.")).toBe(true);
     expect(containsAdvice("De prijs gaat stijgen richting $2.")).toBe(true);
+    expect(containsAdvice("This token will pump soon, buy now.")).toBe(true);
+    expect(containsAdvice("A good entry before it is set to rally.")).toBe(true);
+    expect(containsAdvice("Three tracked wallets bought $120,000 this week. Liquidity is $2.1M.")).toBe(false);
     expect(containsAdvice("Analisten zijn bullish.")).toBe(true);
     expect(containsAdvice("Koersdoel: $5")).toBe(true);
     expect(
@@ -78,9 +81,9 @@ describe("analyse", () => {
       [],
     );
     expect(html).toContain("Bonk ($BONK)");
-    expect(html).toContain("-3,2% 24u");
-    expect(html).toContain("Geen activiteit van gevolgde wallets.");
-    expect(html).not.toContain("Samenvatting");
+    expect(html).toContain("-3.2% 24h");
+    expect(html).toContain("No activity from tracked wallets.");
+    expect(html).not.toContain("Summary");
     expect(html).toContain(DISCLAIMER);
   });
 
@@ -116,7 +119,7 @@ describe("summarize (Groq)", () => {
     const body = JSON.parse(init.body as string);
     expect(body.temperature).toBe(0.2);
     expect(body.messages[0]).toMatchObject({ role: "system" });
-    expect(body.messages[0].content).toContain("Geef NOOIT advies");
+    expect(body.messages[0].content).toContain("NEVER give advice");
     expect(body.messages[1].content).toContain('{"x":1}');
   });
 

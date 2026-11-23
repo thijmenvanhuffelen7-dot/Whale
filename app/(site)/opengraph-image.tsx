@@ -2,12 +2,12 @@ import { ogImage, OG_SIZE } from "@/lib/og";
 
 export const size = OG_SIZE;
 export const contentType = "image/png";
-export const alt = "Whale Alert: zie wat whales doen, zodra ze het doen";
+export const alt = "See what whales do, the moment they do it";
 
 export default function Image() {
   return ogImage({
     kicker: "Ethereum & Solana",
-    title: "Zie wat whales doen.",
-    lines: ["Transfers, smart-money-swaps en exchange-flows.", "Live in Telegram en op het web."],
+    title: "See what whales do.",
+    lines: ["Transfers, smart-money swaps and exchange flows.", "Live in Telegram and on the web."],
   });
 }

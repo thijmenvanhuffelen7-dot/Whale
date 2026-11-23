@@ -31,7 +31,7 @@ describe("publieke commando's", () => {
     expect(send.payload.chat_id).toBe(-1001234567890);
     expect(send.payload.message_thread_id).toBe(7);
     expect(send.payload.parse_mode).toBe("HTML");
-    expect(send.payload.text).toContain("/analyse");
+    expect(send.payload.text).toContain("/analyze");
     expect(send.payload.text).toContain(DISCLAIMER);
     expect(send.payload.text).not.toContain("/addwallet");
   });
@@ -74,7 +74,7 @@ describe("admin-commando's", () => {
     const { bot, deps, sent } = setup();
     await bot.handleUpdate(setupByMember as never);
     expect(deps.saveAlertTarget).not.toHaveBeenCalled();
-    expect(sent()[0]).toContain("Alleen admins");
+    expect(sent()[0]).toContain("Only admins");
   });
 
   it("/setup zonder forum → hoofdchat", async () => {
@@ -99,18 +99,18 @@ describe("admin-commando's", () => {
     expect(sent()[0]).toContain("Fund A cold");
 
     await bot.handleUpdate(commandUpdate("/addwallet eth 0x123 Kapot", { userId: ADMIN }) as never);
-    expect(sent()[1]).toContain("geen geldig ETH-adres");
+    expect(sent()[1]).toContain("not a valid ETH address");
     await bot.handleUpdate(commandUpdate("/addwallet btc 0x123 x", { userId: ADMIN }) as never);
-    expect(sent()[2]).toContain("eth</code> of <code>sol");
+    expect(sent()[2]).toContain("eth</code> or <code>sol");
     await bot.handleUpdate(commandUpdate("/addwallet sol 9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM", { userId: ADMIN }) as never);
-    expect(sent()[3]).toContain("Gebruik:");
+    expect(sent()[3]).toContain("Usage:");
     expect(deps.addWallet).toHaveBeenCalledTimes(1);
   });
 
   it("/addwallet meldt het als de webhook-sync mislukt", async () => {
     const { bot, sent } = setup(makeDeps({ addWallet: async () => ({ existed: false, synced: false, reason: "HELIUS_* env ontbreekt" }) }));
     await bot.handleUpdate(commandUpdate("/addwallet sol 9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM Whale", { userId: ADMIN }) as never);
-    expect(sent()[0]).toContain("Nog niet bij de webhook aangemeld: HELIUS_* env ontbreekt");
+    expect(sent()[0]).toContain("Not registered with the webhook yet: HELIUS_* env ontbreekt");
   });
 
   it("/threshold accepteert 250k / 250.000 en weigert onzin", async () => {
@@ -121,8 +121,8 @@ describe("admin-commando's", () => {
     expect(deps.setThreshold).toHaveBeenNthCalledWith(1, 250_000);
     expect(deps.setThreshold).toHaveBeenNthCalledWith(2, 500_000);
     expect(deps.setThreshold).toHaveBeenCalledTimes(2);
-    expect(sent()[0]).toContain("$250.000");
-    expect(sent()[2]).toContain("Gebruik:");
+    expect(sent()[0]).toContain("$250,000");
+    expect(sent()[2]).toContain("Usage:");
   });
 
   it("/pause en /resume, maar niet voor leden", async () => {
@@ -143,7 +143,7 @@ describe("/analyse", () => {
     const { bot, calls } = setup(deps);
     await bot.handleUpdate(commandUpdate("/analyse pepe", { userId: MEMBER }) as never);
     await Promise.all(tasks);
-    expect(calls.find((c) => c.method === "sendMessage")!.payload.text).toContain("Analyse van <b>pepe</b>");
+    expect(calls.find((c) => c.method === "sendMessage")!.payload.text).toContain("Analyzing <b>pepe</b>");
     const edit = calls.find((c) => c.method === "editMessageText")!;
     expect(edit.payload.text).toBe("<b>analyse</b>");
     expect(deps.analyse.run).toHaveBeenCalledWith("pepe");
@@ -155,7 +155,7 @@ describe("/analyse", () => {
     deps.analyse.usage = vi.fn(async () => ({ used: 5, limit: 5 }));
     const { bot, sent } = setup(deps);
     await bot.handleUpdate(commandUpdate("/analyse pepe", { userId: MEMBER }) as never);
-    expect(sent()[0]).toContain("5 analyses gebruikt");
+    expect(sent()[0]).toContain("used your 5 analyses");
     expect(deps.analyse.run).not.toHaveBeenCalled();
   });
 
@@ -174,14 +174,14 @@ describe("/analyse", () => {
     const { bot, calls } = setup(deps);
     await bot.handleUpdate(commandUpdate("/analyse <xx>", { userId: MEMBER }) as never);
     await Promise.all(tasks);
-    expect(calls.find((c) => c.method === "editMessageText")!.payload.text).toContain("Geen token gevonden voor <b>&lt;xx&gt;</b>");
+    expect(calls.find((c) => c.method === "editMessageText")!.payload.text).toContain("No token found for <b>&lt;xx&gt;</b>");
     expect(deps.analyse.log).not.toHaveBeenCalled();
   });
 
   it("zonder argument → uitleg", async () => {
     const { bot, sent } = setup();
-    await bot.handleUpdate(commandUpdate("/analyse", { userId: MEMBER }) as never);
-    expect(sent()[0]).toContain("Gebruik:");
+    await bot.handleUpdate(commandUpdate("/analyze", { userId: MEMBER }) as never);
+    expect(sent()[0]).toContain("Usage:");
   });
 });
 
@@ -203,8 +203,8 @@ describe("/start <code> (account koppelen)", () => {
     const { bot, sent } = setup(makeDeps({ linkAccount }));
     await bot.handleUpdate(privateStart("/start a1b2c3d4e5f6a7b8c9") as never);
     expect(linkAccount).toHaveBeenCalledWith("a1b2c3d4e5f6a7b8c9", { id: 555, username: "anna" });
-    expect(sent()[0]).toContain("gekoppeld");
-    expect(sent()[0]).toContain("Pro-groep");
+    expect(sent()[0]).toContain("linked");
+    expect(sent()[0]).toContain("Pro group");
   });
 
   it("weigert rare codes zonder database-call, en meldt een bezette koppeling", async () => {
@@ -212,14 +212,14 @@ describe("/start <code> (account koppelen)", () => {
     const { bot, sent } = setup(makeDeps({ linkAccount }));
     await bot.handleUpdate(privateStart("/start ../../etc") as never);
     expect(linkAccount).not.toHaveBeenCalled();
-    expect(sent()[0]).toContain("werkt niet");
+    expect(sent()[0]).toContain("doesn't work");
     await bot.handleUpdate(privateStart("/start a1b2c3d4e5f6a7b8c9") as never);
-    expect(sent()[1]).toContain("al aan een ander");
+    expect(sent()[1]).toContain("already linked to another");
   });
 
   it("zonder code: gewone welkom", async () => {
     const { bot, sent } = setup();
     await bot.handleUpdate(privateStart("/start") as never);
-    expect(sent()[0]).toContain("Welkom");
+    expect(sent()[0]).toContain("Welcome");
   });
 });

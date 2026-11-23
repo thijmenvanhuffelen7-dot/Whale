@@ -32,8 +32,8 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const w = await getWallet(p.chain, p.address);
   const name = w?.label ?? shortAddress(p.address);
   return {
-    title: `${name}: wallet op ${p.chain === "eth" ? "Ethereum" : "Solana"}`,
-    description: `Transacties, holdings en exchange-flows van ${name}${w ? `, ${formatUsd(w.volume_30d)} volume in 30 dagen` : ""}.`,
+    title: `${name}: ${p.chain === "eth" ? "Ethereum" : "Solana"} wallet`,
+    description: `Transactions, holdings and exchange flows of ${name}${w ? `, ${formatUsd(w.volume_30d)} volume in 30 days` : ""}.`,
     alternates: { canonical: `/wallet/${p.chain}/${p.address}` },
   };
 }
@@ -77,9 +77,9 @@ export default async function WalletPage({ params }: { params: Promise<Params> }
       <dl className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-panel)] border border-line bg-line sm:grid-cols-4">
         {[
           ["Volume 30d", formatUsd(wallet?.volume_30d ?? 0)],
-          ["Transacties 30d", String(wallet?.trades_30d ?? events.length)],
+          ["Transactions 30d", String(wallet?.trades_30d ?? events.length)],
           ["Swaps 30d", String(wallet?.swaps_30d ?? 0)],
-          ["Laatst actief", wallet?.last_activity ? timeAgo(wallet.last_activity) : events[0] ? timeAgo(events[0].created_at) : "—"],
+          ["Last active", wallet?.last_activity ? timeAgo(wallet.last_activity) : events[0] ? timeAgo(events[0].created_at) : "—"],
         ].map(([k, v]) => (
           <div key={k} className="bg-surface px-5 py-4">
             <dt className="text-[12px] text-ink-3">{k}</dt>
@@ -89,15 +89,15 @@ export default async function WalletPage({ params }: { params: Promise<Params> }
       </dl>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-        <Panel title="Exchange-flows, 30 dagen" action={<span className="flex gap-3 text-[12px] text-ink-3"><span className="text-buy">● van exchange</span><span className="text-sell">● naar exchange</span></span>}>
+        <Panel title="Exchange flows, 30 days" action={<span className="flex gap-3 text-[12px] text-ink-3"><span className="text-buy">● from exchange</span><span className="text-sell">● to exchange</span></span>}>
           {hasFlows ? (
-            <FlowChart data={flows} inKey="in" outKey="out" inLabel="Van exchange" outLabel="Naar exchange" />
+            <FlowChart data={flows} inKey="in" outKey="out" inLabel="From exchange" outLabel="To exchange" />
           ) : (
-            <Empty title="Geen exchange-flows in deze periode." />
+            <Empty title="No exchange flows in this period." />
           )}
         </Panel>
 
-        <Panel title="Meest verhandeld" bodyClassName="p-0 sm:p-0">
+        <Panel title="Most traded" bodyClassName="p-0 sm:p-0">
           {tops.length ? (
             <ul>
               {tops.map((t) => (
@@ -110,13 +110,13 @@ export default async function WalletPage({ params }: { params: Promise<Params> }
               ))}
             </ul>
           ) : (
-            <div className="px-5"><Empty title="Nog geen swaps gezien." /></div>
+            <div className="px-5"><Empty title="No swaps seen yet." /></div>
           )}
         </Panel>
       </div>
 
       {holdings && (
-        <Panel title="Holdings nu" className="mt-6" bodyClassName="p-0 sm:p-0">
+        <Panel title="Current holdings" className="mt-6" bodyClassName="p-0 sm:p-0">
           {holdings.length ? (
             <ul className="grid sm:grid-cols-2 lg:grid-cols-3">
               {holdings.map((h) => (
@@ -129,16 +129,16 @@ export default async function WalletPage({ params }: { params: Promise<Params> }
               ))}
             </ul>
           ) : (
-            <div className="px-5"><Empty title="Geen tokens gevonden." /></div>
+            <div className="px-5"><Empty title="No tokens found." /></div>
           )}
         </Panel>
       )}
 
-      <Panel title="Tijdlijn" className="mt-6" bodyClassName="p-0 sm:p-0">
+      <Panel title="Timeline" className="mt-6" bodyClassName="p-0 sm:p-0">
         {events.length ? (
           <div className="divide-y divide-line">{events.slice(0, 60).map((e) => <AlertRow key={e.id} e={e} />)}</div>
         ) : (
-          <div className="px-5"><Empty title="Nog geen gemelde transacties." /></div>
+          <div className="px-5"><Empty title="No reported transactions yet." /></div>
         )}
       </Panel>
     </div>

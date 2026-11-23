@@ -14,7 +14,7 @@ const TYPES = ["image/png", "image/jpeg", "image/webp"];
 /** Analyse vanaf de website: tekst (ticker/adres) of een screenshot. */
 export async function POST(req: Request) {
   const p = await getProfile();
-  if (!p) return NextResponse.json({ error: "Log in om te analyseren." }, { status: 401 });
+  if (!p) return NextResponse.json({ error: "Log in to analyze." }, { status: 401 });
 
   const limit = planOf(p).analysesPerDay;
   const db = supabaseAdmin();
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     .gte("created_at", startOfAmsterdamDay().toISOString());
   if ((count ?? 0) >= limit) {
     return NextResponse.json(
-      { error: `Je hebt vandaag je ${limit} analyses gebruikt.${p.plan === "pro" ? "" : " Met Pro krijg je er 50 per dag."}` },
+      { error: `You've used your ${limit} analyses for today.${p.plan === "pro" ? "" : " Pro gives you 50 a day."}` },
       { status: 429 },
     );
   }
@@ -35,22 +35,22 @@ export async function POST(req: Request) {
   const file = form.get("image");
 
   if (!query && file instanceof File && file.size) {
-    if (!TYPES.includes(file.type)) return NextResponse.json({ error: "Upload een PNG, JPG of WEBP." }, { status: 400 });
-    if (file.size > MAX_BYTES) return NextResponse.json({ error: "Afbeelding is groter dan 4 MB." }, { status: 400 });
+    if (!TYPES.includes(file.type)) return NextResponse.json({ error: "Upload a PNG, JPG or WEBP." }, { status: 400 });
+    if (file.size > MAX_BYTES) return NextResponse.json({ error: "Image is larger than 4 MB." }, { status: 400 });
     const b64 = Buffer.from(await file.arrayBuffer()).toString("base64");
     const found = await identifyFromScreenshot(b64, file.type);
     if (!found) {
       return NextResponse.json(
-        { error: process.env.GROQ_API_KEY ? "We konden geen coin herkennen op deze afbeelding. Typ de ticker of het adres." : "Screenshot-analyse staat uit (geen GROQ_API_KEY)." },
+        { error: process.env.GROQ_API_KEY ? "We couldn't recognize a coin in this image. Type the ticker or address instead." : "Screenshot analysis is off (no GROQ_API_KEY)." },
         { status: 422 },
       );
     }
     query = found;
   }
-  if (!query) return NextResponse.json({ error: "Typ een ticker of contractadres, of upload een screenshot." }, { status: 400 });
+  if (!query) return NextResponse.json({ error: "Type a ticker or contract address, or upload a screenshot." }, { status: 400 });
 
   const result = await analyzeToken(query, file instanceof File && file.size ? "screenshot" : "web");
-  if (!result) return NextResponse.json({ error: `Geen token gevonden voor "${query}" op Ethereum of Solana.` }, { status: 404 });
+  if (!result) return NextResponse.json({ error: `No token found for "${query}" on Ethereum or Solana.` }, { status: 404 });
 
   await db.from("web_analyse_log").insert({ user_id: p.id, query });
   return NextResponse.json({

@@ -7,10 +7,10 @@ export const PLANS = {
     maxWatchlist: 5,
     dmAlerts: false,
     features: [
-      "Live feed met 15 minuten vertraging",
-      "3 analyses per dag",
-      "Tot 5 wallets of tokens in je watchlist",
-      "Het publieke Telegram-kanaal",
+      "Live feed with a 15-minute delay",
+      "3 analyses per day",
+      "Up to 5 wallets or tokens in your watchlist",
+      "The public Telegram channel",
     ],
   },
   pro: {
@@ -22,11 +22,11 @@ export const PLANS = {
     priceMonthly: Number(process.env.NEXT_PUBLIC_PRICE_MONTHLY_EUR || 19),
     priceYearly: Number(process.env.NEXT_PUBLIC_PRICE_YEARLY_EUR || 149),
     features: [
-      "Realtime feed, geen vertraging",
-      "50 analyses per dag, ook van screenshots",
-      "Onbeperkt wallets en tokens volgen",
-      "Eigen alerts via Telegram-DM, met je eigen drempel",
-      "Toegang tot de privé Pro-groep",
+      "Real-time feed, no delay",
+      "50 analyses per day, including screenshots",
+      "Follow unlimited wallets and tokens",
+      "Your own alerts via Telegram DM, with your own threshold",
+      "Access to the private Pro group",
     ],
   },
 } as const;

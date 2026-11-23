@@ -4,8 +4,8 @@ import { Faq } from "@/components/site/faq";
 import { getProfile } from "@/lib/auth";
 
 export const metadata: Metadata = {
-  title: "Prijzen",
-  description: "Gratis starten met een vertraagde feed, of Pro voor realtime alerts, onbeperkt volgen en eigen Telegram-DM's.",
+  title: "Pricing",
+  description: "Start free with a delayed feed, or go Pro for real-time alerts, unlimited following and personal Telegram DMs.",
   alternates: { canonical: "/pricing" },
 };
 
@@ -14,13 +14,13 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
   const { canceled } = await searchParams;
   return (
     <div className="mx-auto max-w-[1040px] px-4 py-16 sm:px-6">
-      <h1 className="display text-[56px] sm:text-[76px]">Prijzen</h1>
-      <p className="mt-4 max-w-[52ch] text-[17px] text-ink-2">Begin gratis. Ga naar Pro als je alles direct wilt zien.</p>
-      {canceled && <p role="status" className="mt-6 text-sm text-ink-2">Betaling afgebroken. Er is niets afgeschreven.</p>}
+      <h1 className="display text-[56px] sm:text-[76px]">Pricing</h1>
+      <p className="mt-4 max-w-[52ch] text-[17px] text-ink-2">Start free. Go Pro when you want to see everything instantly.</p>
+      {canceled && <p role="status" className="mt-6 text-sm text-ink-2">Payment cancelled. You have not been charged.</p>}
       <div className="mt-12">
         <PricingTable loggedIn={Boolean(profile)} currentPlan={profile?.plan} />
       </div>
-      <h2 className="display mt-24 mb-8 text-[40px]">Vragen</h2>
+      <h2 className="display mt-24 mb-8 text-[40px]">Questions</h2>
       <Faq />
     </div>
   );

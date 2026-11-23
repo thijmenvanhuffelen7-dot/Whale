@@ -11,7 +11,7 @@ import { getProfile } from "@/lib/auth";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Live feed",
-  description: "Alle whale-transfers, smart-money-swaps en exchange-flows op Ethereum en Solana, live gefilterd.",
+  description: "Every whale transfer, smart-money swap and exchange flow on Ethereum and Solana, live and filterable.",
   alternates: { canonical: "/feed" },
 };
 
@@ -28,10 +28,10 @@ export default async function FeedPage({ searchParams }: { searchParams: Promise
           <h1 className="display text-[48px] sm:text-[64px]">Live feed</h1>
           <p className="mt-3 flex items-center gap-2 text-sm text-ink-2">
             <span className="live-pulse size-1.5 rounded-full bg-amber" />
-            {realtime ? "Realtime, ververst elke 5 seconden." : "15 minuten vertraagd. Pro ziet alles direct."}
+            {realtime ? "Real-time, refreshes every 5 seconds." : "Delayed 15 minutes. Pro sees everything instantly."}
           </p>
         </div>
-        {!realtime && <ButtonLink href="/pricing" variant="ghost" size="sm">Realtime met Pro</ButtonLink>}
+        {!realtime && <ButtonLink href="/pricing" variant="ghost" size="sm">Real-time with Pro</ButtonLink>}
       </div>
 
       <Suspense>
@@ -40,7 +40,7 @@ export default async function FeedPage({ searchParams }: { searchParams: Promise
 
       <div className="mt-6 overflow-hidden rounded-[var(--radius-panel)] border border-line bg-surface">
         <div className="hidden grid-cols-[64px_44px_132px_minmax(0,1fr)_minmax(0,1fr)_120px_24px] gap-x-3 border-b border-line px-5 py-2.5 text-[12px] text-ink-3 md:grid">
-          <span>Tijd</span><span>Chain</span><span>Type</span><span>Wallet</span><span>Bedrag</span><span className="text-right">USD</span><span />
+          <span>Time</span><span>Chain</span><span>Type</span><span>Wallet</span><span>Amount</span><span className="text-right">USD</span><span />
         </div>
         <LiveFeed
           key={feedQueryString(filter)}
@@ -50,8 +50,8 @@ export default async function FeedPage({ searchParams }: { searchParams: Promise
           limit={50}
           empty={
             <div className="px-5">
-              <Empty title="Niets gevonden met deze filters.">
-                Haal een filter weg of verlaag het minimale bedrag. Nieuwe meldingen verschijnen hier vanzelf.
+              <Empty title="Nothing found with these filters.">
+                Remove a filter or lower the minimum amount. New alerts show up here automatically.
               </Empty>
             </div>
           }

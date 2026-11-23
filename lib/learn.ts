@@ -1,20 +1,20 @@
 export const ARTICLES = [
   {
-    slug: "wat-is-smart-money",
-    title: "Wat is smart money?",
-    description: "Wat bedoelen mensen met smart money in crypto, hoe herken je zulke wallets on-chain, en waar zitten de valkuilen.",
+    slug: "what-is-smart-money",
+    title: "What is smart money?",
+    description: "What people mean by smart money in crypto, how to spot those wallets on-chain, and where the pitfalls are.",
     minutes: 4,
   },
   {
-    slug: "exchange-stortingen-lezen",
-    title: "Exchange-stortingen en -opnames lezen",
-    description: "Wat een storting naar of opname van een exchange wel en niet zegt, en waarom context alles is.",
+    slug: "reading-exchange-flows",
+    title: "Reading exchange deposits and withdrawals",
+    description: "What a deposit to or withdrawal from an exchange does and doesn't tell you, and why context is everything.",
     minutes: 4,
   },
   {
-    slug: "whale-alerts-gebruiken",
-    title: "Zo lees je een whale-alert",
-    description: "Elke regel van een melding uitgelegd: type, bedrag, wallet-label en de links naar explorer en DexScreener.",
+    slug: "how-to-read-a-whale-alert",
+    title: "How to read a whale alert",
+    description: "Every line of an alert explained: type, amount, wallet label and the links to the explorer and DexScreener.",
     minutes: 3,
   },
 ] as const;

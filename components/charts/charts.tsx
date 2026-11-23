@@ -20,7 +20,7 @@ function TooltipBox({ active, payload, label, fmt }: { active?: boolean; payload
   );
 }
 
-const day = (d: string | number) => new Date(d).toLocaleDateString("nl-NL", { day: "numeric", month: "short" });
+const day = (d: string | number) => new Date(d).toLocaleDateString("en-US", { day: "numeric", month: "short" });
 
 /** Twee-kleurige staven: instroom (groen) vs uitstroom (rood). */
 export function FlowChart({
@@ -37,7 +37,7 @@ export function FlowChart({
   outLabel: string;
 }) {
   return (
-    <div className="h-56 w-full" role="img" aria-label={`${inLabel} en ${outLabel} per dag`}>
+    <div className="h-56 w-full" role="img" aria-label={`${inLabel} and ${outLabel} per day`}>
       <ResponsiveContainer>
         <BarChart data={data} barGap={2} margin={{ top: 8, right: 0, left: 0, bottom: 0 }}>
           <CartesianGrid {...GRID} />
@@ -56,9 +56,9 @@ export function PriceChart({ data }: { data: { t: number; c: number }[] }) {
   const up = data.length > 1 && data[data.length - 1].c >= data[0].c;
   const color = up ? "#4ade9b" : "#ff6b6b";
   const hour = (t: string | number) =>
-    new Date(t).toLocaleString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+    new Date(t).toLocaleString("en-US", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
   return (
-    <div className="h-64 w-full" role="img" aria-label="Prijs per uur, laatste 7 dagen">
+    <div className="h-64 w-full" role="img" aria-label="Hourly price, last 7 days">
       <ResponsiveContainer>
         <AreaChart data={data} margin={{ top: 8, right: 0, left: 0, bottom: 0 }}>
           <defs>
@@ -91,7 +91,7 @@ export function PriceChart({ data }: { data: { t: number; c: number }[] }) {
 /** Aantallen per dag (geen dollars). */
 export function CountChart({ data, label }: { data: { day: string; v: number }[]; label: string }) {
   return (
-    <div className="h-48 w-full" role="img" aria-label={`${label} per dag`}>
+    <div className="h-48 w-full" role="img" aria-label={`${label} per day`}>
       <ResponsiveContainer>
         <BarChart data={data} margin={{ top: 8, right: 0, left: 0, bottom: 0 }}>
           <CartesianGrid {...GRID} />

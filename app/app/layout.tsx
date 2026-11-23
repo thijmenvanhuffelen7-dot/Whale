@@ -13,14 +13,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="min-h-dvh">
       <header className="border-b border-line">
         <div className="mx-auto flex h-16 max-w-[1320px] items-center justify-between gap-4 px-4 sm:px-6">
-          <Link href="/" aria-label="Naar de site"><Logo /></Link>
+          <Link href="/" aria-label="To the website"><Logo /></Link>
           <div className="flex items-center gap-3 text-sm">
             <span className={p.plan === "pro" ? "num rounded-[4px] bg-amber px-1.5 text-[11px] font-semibold text-amber-ink" : "num rounded-[4px] border border-line-strong px-1.5 text-[11px] text-ink-2"}>
               {p.plan === "pro" ? "PRO" : "FREE"}
             </span>
             <span className="hidden max-w-[200px] truncate text-ink-2 sm:inline">{p.email}</span>
             <form action="/auth/signout" method="post">
-              <button className="text-ink-2 hover:text-ink">Uitloggen</button>
+              <button className="text-ink-2 hover:text-ink">Log out</button>
             </form>
           </div>
         </div>

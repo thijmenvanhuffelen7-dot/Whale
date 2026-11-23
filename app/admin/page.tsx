@@ -6,7 +6,7 @@ import { isActiveStatus } from "@/lib/stripe";
 import { formatUsd } from "@/lib/format";
 import { timeAgo } from "@/lib/time";
 
-const eur = (cents: number) => new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(cents / 100);
+const eur = (cents: number) => new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR" }).format(cents / 100);
 
 function perDay<T>(rows: T[], dateOf: (r: T) => string, valueOf: (r: T) => number, days = 14) {
   const map = new Map<string, number>();
@@ -39,16 +39,16 @@ export default async function AdminHome() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="display text-[40px] sm:text-[48px]">Overzicht</h1>
+        <h1 className="display text-[40px] sm:text-[48px]">Overview</h1>
         <TestAlertButton />
       </div>
 
       <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-panel)] border border-line bg-line lg:grid-cols-4">
         {[
-          ["Gebruikers", String(users.count ?? 0)],
+          ["Users", String(users.count ?? 0)],
           ["Pro", String(pros.count ?? 0)],
           ["MRR", eur(mrrCents)],
-          ["AI-kosten, 14 dagen", "$" + aiTotal.toFixed(2)],
+          ["AI cost, 14 days", "$" + aiTotal.toFixed(2)],
         ].map(([k, v]) => (
           <div key={k} className="bg-surface px-5 py-4">
             <dt className="text-[12px] text-ink-3">{k}</dt>
@@ -58,10 +58,10 @@ export default async function AdminHome() {
       </dl>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Panel title="Alerts per dag (verstuurd)">
+        <Panel title="Alerts per day (sent)">
           <CountChart data={alertsPerDay} label="Alerts" />
         </Panel>
-        <Panel title="AI-kosten per dag (schatting, USD)">
+        <Panel title="AI cost per day (estimate, USD)">
           <ul className="num grid grid-cols-2 gap-x-6 gap-y-1 text-[13px] sm:grid-cols-3">
             {aiPerDay.map((d) => (
               <li key={d.day} className="flex justify-between gap-2 border-b border-line py-1.5">
@@ -73,33 +73,33 @@ export default async function AdminHome() {
         </Panel>
       </div>
 
-      <Panel title="Abonnementen" bodyClassName="p-0 sm:p-0">
+      <Panel title="Subscriptions" bodyClassName="p-0 sm:p-0">
         {subs.data?.length ? (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="text-left text-[12px] text-ink-3">
                 <tr className="border-b border-line">
-                  <th className="px-5 py-2.5 font-normal">E-mail</th><th className="px-5 py-2.5 font-normal">Status</th><th className="px-5 py-2.5 font-normal">Plan</th><th className="px-5 py-2.5 font-normal">Tot</th>
+                  <th className="px-5 py-2.5 font-normal">Email</th><th className="px-5 py-2.5 font-normal">Status</th><th className="px-5 py-2.5 font-normal">Plan</th><th className="px-5 py-2.5 font-normal">Until</th>
                 </tr>
               </thead>
               <tbody>
                 {subs.data.map((s, i) => (
                   <tr key={i} className="border-b border-line last:border-b-0">
                     <td className="px-5 py-3">{(s.profiles as unknown as { email: string } | null)?.email ?? s.user_id}</td>
-                    <td className={"px-5 py-3 " + (isActiveStatus(s.status) ? "text-buy" : "text-ink-3")}>{s.status}{s.cancel_at_period_end ? " (stopt)" : ""}</td>
-                    <td className="num px-5 py-3">{s.amount_cents ? eur(s.amount_cents) : "—"} / {s.interval === "year" ? "jaar" : "maand"}</td>
-                    <td className="num px-5 py-3 text-ink-2">{s.current_period_end ? new Date(s.current_period_end).toLocaleDateString("nl-NL") : "—"}</td>
+                    <td className={"px-5 py-3 " + (isActiveStatus(s.status) ? "text-buy" : "text-ink-3")}>{s.status}{s.cancel_at_period_end ? " (ending)" : ""}</td>
+                    <td className="num px-5 py-3">{s.amount_cents ? eur(s.amount_cents) : "—"} / {s.interval === "year" ? "year" : "month"}</td>
+                    <td className="num px-5 py-3 text-ink-2">{s.current_period_end ? new Date(s.current_period_end).toLocaleDateString("en-US") : "—"}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         ) : (
-          <div className="px-5"><Empty title="Nog geen abonnementen." /></div>
+          <div className="px-5"><Empty title="No subscriptions yet." /></div>
         )}
       </Panel>
 
-      <Panel title="Mislukte webhooks en berichten" bodyClassName="p-0 sm:p-0">
+      <Panel title="Failed webhooks and messages" bodyClassName="p-0 sm:p-0">
         {failures.data?.length ? (
           <ul>
             {failures.data.map((f) => (
@@ -111,10 +111,10 @@ export default async function AdminHome() {
             ))}
           </ul>
         ) : (
-          <div className="px-5"><Empty title="Geen fouten. Mooi zo." /></div>
+          <div className="px-5"><Empty title="No errors. Nice." /></div>
         )}
       </Panel>
-      <p className="text-[12px] text-ink-3">AI-kosten zijn een schatting op basis van tokens × lijstprijs; op de gratis tier van Groq betaal je {formatUsd(0)}.</p>
+      <p className="text-[12px] text-ink-3">AI cost is an estimate based on tokens × list price; on Groq’s free tier you pay {formatUsd(0)}.</p>
     </div>
   );
 }

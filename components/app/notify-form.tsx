@@ -16,10 +16,10 @@ export function NotifyForm({ telegram, email, pro, linked }: { telegram: boolean
   );
   return (
     <form action={action} className="flex flex-col gap-5">
-      {row("notify_telegram", "Telegram-DM", pro ? (linked ? "Alerts voor je watchlist in je DM." : "Koppel eerst Telegram hierboven.") : "Onderdeel van Pro.", telegram, !pro || !linked)}
-      {row("notify_email", "E-mail", pro ? "Alerts voor je watchlist per e-mail (max. 1 per item per 10 minuten)." : "Onderdeel van Pro.", email, !pro)}
+      {row("notify_telegram", "Telegram-DM", pro ? (linked ? "Watchlist alerts in your DMs." : "Link Telegram above first.") : "Part of Pro.", telegram, !pro || !linked)}
+      {row("notify_email", "Email", pro ? "Watchlist alerts by email." : "Part of Pro.", email, !pro)}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" disabled={pending}>{pending ? "Opslaan…" : "Opslaan"}</Button>
+        <Button variant="ghost" size="sm" disabled={pending}>{pending ? "Saving…" : "Save"}</Button>
         <span role="status" className={state?.error ? "text-sm text-sell" : "text-sm text-buy"}>{state?.error ?? state?.message ?? ""}</span>
       </div>
     </form>

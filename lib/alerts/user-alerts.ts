@@ -104,9 +104,9 @@ export async function dispatchUserAlerts(api: Api): Promise<{ sent: number }> {
       if (!claimed?.length) continue;
       try {
         if (channel === "telegram") {
-          await sendWithRetry(api, p.telegram_user_id!, `${html}\n\n<i>Uit je watchlist · ${SITE.url}/app</i>`);
+          await sendWithRetry(api, p.telegram_user_id!, `${html}\n\n<i>From your watchlist · ${SITE.url}/app</i>`);
         } else {
-          await sendEmail(p.email!, `Whale Alert: ${e.wallets?.label ?? m.label ?? "wallet"} ${e.token_symbol ? `$${e.token_symbol}` : ""}`, html);
+          await sendEmail(p.email!, `${SITE.name}: ${e.wallets?.label ?? m.label ?? "wallet"} ${e.token_symbol ? `$${e.token_symbol}` : ""}`, html);
         }
         sent++;
       } catch (err) {
@@ -126,10 +126,10 @@ async function sendEmail(to: string, subject: string, telegramHtml: string) {
     method: "POST",
     headers: { "content-type": "application/json", authorization: `Bearer ${process.env.RESEND_API_KEY}` },
     body: JSON.stringify({
-      from: process.env.EMAIL_FROM || "Whale Alert <alerts@example.com>",
+      from: process.env.EMAIL_FROM || `${SITE.name} <alerts@example.com>`,
       to,
       subject,
-      html: `<div style="font-family:system-ui,sans-serif;font-size:15px;line-height:1.5">${body}<p style="color:#888;font-size:12px">Geen financieel advies. Alleen informatie. Meldingen uitzetten: ${SITE.url}/app/account</p></div>`,
+      html: `<div style="font-family:system-ui,sans-serif;font-size:15px;line-height:1.5">${body}<p style="color:#888;font-size:12px">Not financial advice. Information only. Turn off alerts: ${SITE.url}/app/account</p></div>`,
     }),
     signal: AbortSignal.timeout(10_000),
   });
@@ -167,7 +167,7 @@ export async function postPublicDelayed(api: Api): Promise<{ posted: number }> {
       ],
     );
     try {
-      await sendWithRetry(api, channel, `${html}\n\n⏱ <i>15 min vertraagd.</i> Realtime met Pro: ${SITE.url}/pricing`);
+      await sendWithRetry(api, channel, `${html}\n\n⏱ <i>Delayed 15 min.</i> Real-time with Pro: ${SITE.url}/pricing`);
       await db.from("events").update({ public_posted: true }).eq("id", e.id);
       posted++;
     } catch (err) {

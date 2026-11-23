@@ -4,12 +4,12 @@ import { CountUpUsd, CountUpInt } from "@/components/site/stats-strip-client";
 export function StatsStrip({ stats }: { stats: { tracked_wallets: number; volume_24h: number; alerts_24h: number } }) {
   if (!stats.tracked_wallets && !stats.alerts_24h) return null;
   const items = [
-    { label: "Gevolgde wallets", node: <CountUpInt value={stats.tracked_wallets} /> },
-    { label: "Volume gevolgd, 24 uur", node: <CountUpUsd value={stats.volume_24h} /> },
-    { label: "Meldingen, 24 uur", node: <CountUpInt value={stats.alerts_24h} /> },
+    { label: "Wallets tracked", node: <CountUpInt value={stats.tracked_wallets} /> },
+    { label: "Volume tracked, 24h", node: <CountUpUsd value={stats.volume_24h} /> },
+    { label: "Alerts, 24h", node: <CountUpInt value={stats.alerts_24h} /> },
   ];
   return (
-    <section aria-label="Live statistieken" className="border-b border-line">
+    <section aria-label="Live statistics" className="border-b border-line">
       <dl className="mx-auto grid max-w-[1240px] grid-cols-1 divide-y divide-line px-4 sm:grid-cols-3 sm:divide-x sm:divide-y-0 sm:px-6">
         {items.map((i) => (
           <div key={i.label} className="flex items-baseline justify-between gap-4 py-5 sm:flex-col sm:items-start sm:gap-1 sm:px-6 sm:first:pl-0">

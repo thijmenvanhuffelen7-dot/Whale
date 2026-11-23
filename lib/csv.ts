@@ -16,11 +16,11 @@ export function parseWalletCsv(text: string): { rows: WalletInput[]; errors: str
       if (!line || line.startsWith("#") || /^chain\s*,/i.test(line)) return;
       const [c, a, label, t, entity] = line.split(",").map((s) => s?.trim().replace(/^"|"$/g, ""));
       const chain = c?.toLowerCase();
-      if (chain !== "eth" && chain !== "sol") return errors.push(`Regel ${i + 1}: chain moet eth of sol zijn`);
-      if (chain === "eth" ? !isEthAddress(a ?? "") : !isSolAddress(a ?? "")) return errors.push(`Regel ${i + 1}: ongeldig adres`);
-      if (!label) return errors.push(`Regel ${i + 1}: label ontbreekt`);
+      if (chain !== "eth" && chain !== "sol") return errors.push(`Row ${i + 1}: chain must be eth or sol`);
+      if (chain === "eth" ? !isEthAddress(a ?? "") : !isSolAddress(a ?? "")) return errors.push(`Row ${i + 1}: invalid address`);
+      if (!label) return errors.push(`Row ${i + 1}: label is missing`);
       const type = (t?.toLowerCase() || "whale") as WType;
-      if (!TYPES.includes(type)) return errors.push(`Regel ${i + 1}: type moet smart_money, whale of exchange zijn`);
+      if (!TYPES.includes(type)) return errors.push(`Row ${i + 1}: type must be smart_money, whale or exchange`);
       rows.push({ chain, address: normAddr(chain, a!), label: label.slice(0, 60), type, entity: entity || null });
     });
   return { rows, errors };

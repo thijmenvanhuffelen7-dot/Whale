@@ -10,15 +10,15 @@ import { cn } from "@/lib/cn";
 
 export const revalidate = 120;
 export const metadata: Metadata = {
-  title: "Whale-leaderboard",
-  description: "De gevolgde whale- en smart-money-wallets op Ethereum en Solana, gesorteerd op volume, trades en activiteit.",
+  title: "Whale leaderboard",
+  description: "The tracked whale and smart-money wallets on Ethereum and Solana, sorted by volume, trades and activity.",
   alternates: { canonical: "/wallets" },
 };
 
 const SORTS: { key: WalletSort; label: string }[] = [
   { key: "volume", label: "Volume 30d" },
-  { key: "trades", label: "Transacties 30d" },
-  { key: "recent", label: "Laatst actief" },
+  { key: "trades", label: "Transactions 30d" },
+  { key: "recent", label: "Last active" },
 ];
 
 export default async function WalletsPage({ searchParams }: { searchParams: Promise<{ sort?: string }> }) {
@@ -30,8 +30,8 @@ export default async function WalletsPage({ searchParams }: { searchParams: Prom
     <div className="mx-auto max-w-[1240px] px-4 py-12 sm:px-6">
       <h1 className="display text-[48px] sm:text-[64px]">Wallets</h1>
       <p className="mt-3 max-w-[62ch] text-[15px] text-ink-2">
-        De wallets die we volgen, met hun activiteit van de laatste 30 dagen. We tonen geen winst of verlies: zonder de volledige
-        aankoophistorie van elke positie is die niet betrouwbaar te berekenen.
+        The wallets we track, with their activity over the last 30 days. We don’t show profit or loss: without the full purchase
+        history of every position it can’t be calculated reliably.
       </p>
 
       <div className="mt-10 overflow-hidden rounded-[var(--radius-panel)] border border-line bg-surface">
@@ -76,7 +76,7 @@ export default async function WalletsPage({ searchParams }: { searchParams: Prom
           ))
         ) : (
           <div className="px-5">
-            <Empty title="Nog geen wallets.">Zodra er wallets gevolgd worden, staan ze hier met hun activiteit.</Empty>
+            <Empty title="No wallets yet.">Once wallets are being tracked, they appear here with their activity.</Empty>
           </div>
         )}
       </div>

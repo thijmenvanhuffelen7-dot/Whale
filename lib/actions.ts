@@ -22,28 +22,28 @@ export async function addWatch(_: ActionState, form: FormData): Promise<ActionSt
   const label = String(form.get("label") ?? "").trim().slice(0, 60) || null;
   const minUsd = Number(String(form.get("min_usd") ?? "10000").replace(/[^\d.]/g, ""));
 
-  if (!chain) return { error: "Kies Ethereum of Solana." };
+  if (!chain) return { error: "Choose Ethereum or Solana." };
   if (chain === "eth" ? !isEthAddress(raw) : !isSolAddress(raw))
-    return { error: `Dat is geen geldig ${chain === "eth" ? "Ethereum" : "Solana"}-adres.` };
-  if (!Number.isFinite(minUsd) || minUsd < 0) return { error: "Vul een geldig minimumbedrag in." };
+    return { error: `That's not a valid ${chain === "eth" ? "Ethereum" : "Solana"} address.` };
+  if (!Number.isFinite(minUsd) || minUsd < 0) return { error: "Enter a valid minimum amount." };
 
   const db = supabaseAdmin();
   const { count } = await db.from("watchlist").select("id", { count: "exact", head: true }).eq("user_id", p.id);
   const max = planOf(p).maxWatchlist;
-  if ((count ?? 0) >= max) return { error: `Je volgt al ${max} items. Met Pro volg je onbeperkt.` };
+  if ((count ?? 0) >= max) return { error: `You already follow ${max} items. Pro lets you follow unlimited.` };
 
   const { error } = await db.from("watchlist").upsert(
     { user_id: p.id, kind, chain, address: normAddr(chain, raw), label, min_usd: minUsd },
     { onConflict: "user_id,kind,chain,address" },
   );
-  if (error) return { error: "Opslaan lukte niet. Probeer het opnieuw." };
+  if (error) return { error: "Couldn't save. Please try again." };
   // Zorg dat Helius/Alchemy dit adres ook doorsturen (anders zien we het nooit).
   // (ETH-tokens kan Address Activity niet volgen, zie README.)
   if (kind === "wallet" || chain === "sol") {
     await syncWalletChange(chain, { add: normAddr(chain, raw) }).catch((e) => console.error("[watchlist sync]", e));
   }
   revalidatePath("/app", "layout");
-  return { ok: true, message: "Toegevoegd aan je watchlist." };
+  return { ok: true, message: "Added to your watchlist." };
 }
 
 /** "Volg deze wallet/dit token" vanaf een publieke pagina. */
@@ -79,7 +79,7 @@ export async function saveNotifications(_: ActionState, form: FormData): Promise
     .update({ notify_telegram: form.get("notify_telegram") === "on", notify_email: form.get("notify_email") === "on" })
     .eq("id", p.id);
   revalidatePath("/app/account");
-  return error ? { error: "Opslaan lukte niet." } : { ok: true, message: "Opgeslagen." };
+  return error ? { error: "Couldn't save." } : { ok: true, message: "Saved." };
 }
 
 export async function unlinkTelegram() {

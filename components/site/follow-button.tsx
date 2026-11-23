@@ -12,7 +12,7 @@ export function FollowButton({ kind, chain, address, label, back }: { kind: "wal
       <input type="hidden" name="min_usd" value="10000" />
       <input type="hidden" name="back" value={back} />
       <button className={buttonClass("primary", "md")}>
-        <Eye className="size-4" /> {kind === "wallet" ? "Volg deze wallet" : "Volg dit token"}
+        <Eye className="size-4" /> {kind === "wallet" ? "Follow this wallet" : "Follow this token"}
       </button>
     </form>
   );

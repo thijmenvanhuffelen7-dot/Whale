@@ -37,10 +37,10 @@ export function AnalyseClient({ limit }: { limit: number }) {
     try {
       const res = await fetch("/api/analyse", { method: "POST", body: fd });
       const json = await res.json();
-      if (!res.ok) setError(json.error ?? "Er ging iets mis.");
+      if (!res.ok) setError(json.error ?? "Something went wrong.");
       else setData(json);
     } catch {
-      setError("Geen verbinding. Probeer het opnieuw.");
+      setError("No connection. Please try again.");
     } finally {
       setBusy(false);
     }
@@ -58,12 +58,12 @@ export function AnalyseClient({ limit }: { limit: number }) {
                 setQuery(e.target.value);
                 if (e.target.value) pick(null);
               }}
-              placeholder="Ticker of contractadres, bijv. BONK"
-              aria-label="Ticker of contractadres"
+              placeholder="Ticker or contract address, e.g. BONK"
+              aria-label="Ticker or contract address"
               className={inputClass + " h-12 flex-1 text-[15px]"}
             />
             <Button size="lg" disabled={busy || (!query && !file)}>
-              <Search className="size-4" /> {busy ? "Analyseren…" : "Analyseer"}
+              <Search className="size-4" /> {busy ? "Analyzing…" : "Analyze"}
             </Button>
           </div>
           <div
@@ -77,22 +77,22 @@ export function AnalyseClient({ limit }: { limit: number }) {
             {preview ? (
               <>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={preview} alt="Gekozen screenshot" className="h-16 w-auto rounded border border-line" />
+                <img src={preview} alt="Selected screenshot" className="h-16 w-auto rounded border border-line" />
                 <span className="text-sm text-ink-2">{file?.name}</span>
-                <button type="button" onClick={() => pick(null)} aria-label="Screenshot weghalen" className="ml-auto rounded p-1.5 text-ink-3 hover:text-ink">
+                <button type="button" onClick={() => pick(null)} aria-label="Remove screenshot" className="ml-auto rounded p-1.5 text-ink-3 hover:text-ink">
                   <X className="size-4" />
                 </button>
               </>
             ) : (
               <>
                 <ImageUp className="size-5 text-ink-3" />
-                <span className="text-sm text-ink-2">Of sleep een chart-screenshot hierheen.</span>
-                <button type="button" onClick={() => input.current?.click()} className="text-sm text-amber underline">Kies bestand</button>
+                <span className="text-sm text-ink-2">Or drop a chart screenshot here.</span>
+                <button type="button" onClick={() => input.current?.click()} className="text-sm text-amber underline">Choose file</button>
               </>
             )}
             <input ref={input} type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" onChange={(e) => pick(e.target.files?.[0] ?? null)} />
           </div>
-          <p className="text-[12px] text-ink-3">{limit} analyses per dag. {data ? `Nog ${data.remaining} over vandaag.` : ""}</p>
+          <p className="text-[12px] text-ink-3">{limit} analyses per day. {data ? `${data.remaining} left today.` : ""}</p>
           {error && <p role="alert" className="text-sm text-sell">{error}</p>}
         </form>
       </Panel>
@@ -100,38 +100,38 @@ export function AnalyseClient({ limit }: { limit: number }) {
       {r && (
         <Panel
           title={<span className="flex items-center gap-2 text-ink">{r.token.name ?? r.token.symbol} <span className="text-ink-3">${r.token.symbol}</span> <ChainTag chain={r.token.chain} /></span>}
-          action={<Link href={`/token/${r.token.chain}/${r.token.address}`} className="text-[13px] text-ink-2 hover:text-ink">Tokenpagina</Link>}
+          action={<Link href={`/token/${r.token.chain}/${r.token.address}`} className="text-[13px] text-ink-2 hover:text-ink">Token page</Link>}
         >
           <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
             {[
-              ["Prijs", formatPrice(r.token.priceUsd)],
-              ["24u", formatPct(r.token.priceChange24hPct)],
-              ["Volume 24u", formatUsd(r.token.volume24hUsd)],
-              ["Liquiditeit", r.token.liquidityUsd == null ? "—" : formatUsd(r.token.liquidityUsd)],
+              ["Price", formatPrice(r.token.priceUsd)],
+              ["24h", formatPct(r.token.priceChange24hPct)],
+              ["24h volume", formatUsd(r.token.volume24hUsd)],
+              ["Liquidity", r.token.liquidityUsd == null ? "—" : formatUsd(r.token.liquidityUsd)],
             ].map(([k, v]) => (
               <div key={k}>
                 <dt className="text-[12px] text-ink-3">{k}</dt>
-                <dd className={cn("num mt-0.5 text-[18px] font-medium", k === "24u" && (r.token.priceChange24hPct ?? 0) >= 0 ? "text-buy" : k === "24u" ? "text-sell" : "")}>{v}</dd>
+                <dd className={cn("num mt-0.5 text-[18px] font-medium", k === "24h" && (r.token.priceChange24hPct ?? 0) >= 0 ? "text-buy" : k === "24h" ? "text-sell" : "")}>{v}</dd>
               </div>
             ))}
           </dl>
           <div className="mt-6 border-t border-line pt-5">
-            <h3 className="text-[13px] font-medium text-ink-2">Gevolgde wallets, 7 dagen</h3>
+            <h3 className="text-[13px] font-medium text-ink-2">Tracked wallets, 7 days</h3>
             <p className="mt-2 text-[15px]">
               {r.stats.buys + r.stats.sells === 0
-                ? "Geen activiteit van gevolgde wallets."
-                : `${r.stats.buys}× gekocht (${formatUsd(r.stats.buyUsd)}), ${r.stats.sells}× verkocht (${formatUsd(r.stats.sellUsd)}).`}
+                ? "No activity from tracked wallets."
+                : `Bought ${r.stats.buys}× (${formatUsd(r.stats.buyUsd)}), sold ${r.stats.sells}× (${formatUsd(r.stats.sellUsd)}).`}
             </p>
           </div>
           {r.summary && (
             <div className="mt-5 border-t border-line pt-5">
-              <h3 className="text-[13px] font-medium text-ink-2">Samenvatting</h3>
+              <h3 className="text-[13px] font-medium text-ink-2">Summary</h3>
               <p className="mt-2 max-w-[68ch] whitespace-pre-line text-[15px] leading-relaxed">{r.summary}</p>
             </div>
           )}
           {r.news.length > 0 && (
             <div className="mt-5 border-t border-line pt-5">
-              <h3 className="text-[13px] font-medium text-ink-2">Nieuws</h3>
+              <h3 className="text-[13px] font-medium text-ink-2">News</h3>
               <ul className="mt-2 flex flex-col gap-1.5">
                 {r.news.slice(0, 4).map((n) => (
                   <li key={n.url}><a href={n.url} target="_blank" rel="noopener noreferrer" className="text-[15px] text-ink hover:text-amber">{n.title}</a></li>

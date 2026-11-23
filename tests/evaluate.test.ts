@@ -100,6 +100,20 @@ describe("evaluateEvent", () => {
     expect(r).toMatchObject({ filterReason: "watchlist_only", walletId: null, usdValue: 3_000_000 });
   });
 
+  it("USDC → USDT wisselen wordt niet gemeld", () => {
+    const USDT = "0xdac17f958d2ee523a2206206994597c13d831ec7";
+    const r = evaluateEvent(
+      ev({ type: "swap_buy", tokenAddress: USDT, tokenSymbol: "USDT", amount: 5000, quote: { tokenAddress: USDC, tokenSymbol: "USDC", amount: 5000 } }),
+      { wallets, price: info(USDT, "USDT", 1), quotePrice: info(USDC, "USDC", 1), settings },
+    );
+    expect(r.filterReason).toBe("stable_swap");
+  });
+
+  it("haalt spaties rond symbolen weg", () => {
+    const r = evaluateEvent(ev({ amount: 1000 }), { wallets, price: info(WETH, "Fartcoin ", 3000), quotePrice: null, settings });
+    expect(r.tokenSymbol).toBe("Fartcoin");
+  });
+
   it("gepauzeerd = opslaan maar niet melden", () => {
     const r = evaluateEvent(ev({ amount: 1000 }), {
       wallets, price: info(WETH, "WETH", 3000), quotePrice: null, settings: { ...settings, paused: true },

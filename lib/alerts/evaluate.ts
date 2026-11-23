@@ -51,7 +51,8 @@ export function evaluateEvent(
     type = ev.direction === "in" ? "exchange_withdrawal" : "exchange_deposit";
   }
 
-  const symbol = price?.symbol && price.symbol !== "?" ? price.symbol : ev.tokenSymbol;
+  const rawSymbol = price?.symbol && price.symbol !== "?" ? price.symbol : ev.tokenSymbol;
+  const symbol = rawSymbol?.trim() || null;
 
   // 2. USD-waarde. Bij swaps tegen SOL/ETH/stables is de quote-kant betrouwbaarder.
   let usd: number | null = null;
@@ -67,6 +68,11 @@ export function evaluateEvent(
 
   if (settings.paused) return reject("paused");
   if (usd == null || !price) return reject("no_price");
+
+  // 2b. Stablecoin voor stablecoin wisselen (USDC → USDT) zegt niets
+  if (ev.quote && isStable(chain, ev.tokenAddress) && isStable(chain, ev.quote.tokenAddress)) {
+    return reject("stable_swap");
+  }
 
   // 3. Dust/spam: te weinig liquiditeit (native en stables altijd ok)
   const tokenAddr = normAddr(chain, ev.tokenAddress);

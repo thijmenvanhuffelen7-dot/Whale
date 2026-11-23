@@ -30,6 +30,8 @@ const schema = z.object({
   ETHERSCAN_API_KEY: z.string().optional(),
 
   TAVILY_API_KEY: z.string().optional(),
+  GROQ_API_KEY: z.string().optional(),
+  GROQ_MODEL: z.string().default("llama-3.3-70b-versatile"),
   ANTHROPIC_API_KEY: z.string().optional(),
   ANTHROPIC_MODEL: z.string().default("claude-sonnet-5-5"),
 

@@ -13,7 +13,7 @@ Next.js (App Router) op Vercel, grammY in webhook-mode, Supabase als database.
 | 2 | Solana via Helius-webhook → events → alerts | ✅ |
 | 3 | Ethereum via Alchemy-webhook → events → alerts | ✅ |
 | 4 | Exchange-labels, filters, throttling, bundelen | ✅ |
-| 5 | `/analyse` (DexScreener + Tavily + Claude) | ✅ |
+| 5 | `/analyse` (DexScreener + Tavily + Groq) | ✅ |
 | 6 | Dagelijkse digest + opschonen (cron) | ✅ |
 | 7 | Design system | ⏳ wacht op jouw goedkeuring |
 | 8–12 | Website, app, Stripe, admin, deploy | ⏳ |
@@ -163,9 +163,9 @@ Fixtures (voorbeeld-payloads) staan in `fixtures/`. Tests sturen nooit echte ber
 
 ## AI (`/analyse`)
 
-- Model: `ANTHROPIC_MODEL` (standaard `claude-sonnet-5-5`), korte output.
-- Sonnet 5.5 accepteert geen `temperature`. In plaats daarvan staat thinking uit en effort op `low`.
-- Server-side fallback staat aan: weigert het model onterecht, dan neemt een ander model het over.
+- Provider: **Groq** (`GROQ_API_KEY`, model via `GROQ_MODEL`, standaard `llama-3.3-70b-versatile`),
+  temperature 0.2, max 500 tokens. Anthropic kan als alternatief (`ANTHROPIC_API_KEY`); Groq gaat voor.
+- Geen key? Dan werkt `/analyse` gewoon, alleen zonder het blok "Samenvatting".
 - De prompt verbiedt advies en voorspellingen. Daarnaast checkt de code de output op koop- en
   voorspel-taal. Bij een hit tonen we alleen de feiten, zonder AI-tekst.
 
@@ -184,7 +184,7 @@ app/api/webhooks/helius|alchemy  On-chain webhooks (auth header / HMAC)
 app/api/cron/                digest, cleanup, dispatch
 lib/chain/                   parsers (Helius, Alchemy) → netto-flows → events
 lib/alerts/                  evaluate (filters), format (HTML), pipeline (DB + dispatch)
-lib/analyse/                 /analyse: token zoeken, nieuws, Claude
+lib/analyse/                 /analyse: token zoeken, nieuws, AI-samenvatting (Groq)
 lib/prices/                  DexScreener (+ CoinGecko fallback), 60s cache
 lib/bot/                     commando's (createBot is testbaar met nep-deps)
 lib/messages.ts              alle teksten (NL)

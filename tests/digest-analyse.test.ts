@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { amsterdamNow, buildDigest, startOfAmsterdamDay, type DigestRow } from "@/lib/digest";
-import { aggregateStats, containsAdvice, emptyStats, formatAnalysis } from "@/lib/analyse";
+import { aggregateStats, containsAdvice, emptyStats, formatAnalysis, summarize } from "@/lib/analyse";
 import { pairsToInfo } from "@/lib/prices";
 import { DISCLAIMER } from "@/lib/messages";
 
@@ -91,5 +91,47 @@ describe("analyse", () => {
     });
     const info = pairsToInfo("sol", "Tok", [pair(5_000, "1.1"), pair(50_000, "1.0"), pair(999_999, "9", "Other")]);
     expect(info).toMatchObject({ priceUsd: 1, liquidityUsd: 55_000, volume24hUsd: 20, pairUrl: "u50000" });
+  });
+});
+
+describe("summarize (Groq)", () => {
+  const groqReply = (content: string, status = 200) =>
+    vi.fn(async () => new Response(JSON.stringify({ choices: [{ message: { content } }] }), { status }));
+
+  beforeEach(() => {
+    process.env.GROQ_API_KEY = "gsk_test";
+    delete process.env.ANTHROPIC_API_KEY;
+  });
+  afterEach(() => {
+    delete process.env.GROQ_API_KEY;
+  });
+
+  it("stuurt system-prompt, lage temperature en Bearer-key naar Groq", async () => {
+    const fetchImpl = groqReply("De liquiditeit is $2,1M.\\nDrie gevolgde wallets kochten.");
+    const out = await summarize('{"x":1}', fetchImpl as unknown as typeof fetch);
+    expect(out).toBe("De liquiditeit is $2,1M.\\nDrie gevolgde wallets kochten.");
+    const [url, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe("https://api.groq.com/openai/v1/chat/completions");
+    expect((init.headers as Record<string, string>).authorization).toBe("Bearer gsk_test");
+    const body = JSON.parse(init.body as string);
+    expect(body.temperature).toBe(0.2);
+    expect(body.messages[0]).toMatchObject({ role: "system" });
+    expect(body.messages[0].content).toContain("Geef NOOIT advies");
+    expect(body.messages[1].content).toContain('{"x":1}');
+  });
+
+  it("advies in de output → null (alleen feiten tonen)", async () => {
+    expect(await summarize("{}", groqReply("Koop nu, dit gaat stijgen!") as unknown as typeof fetch)).toBeNull();
+  });
+
+  it("fout van Groq → null, geen crash", async () => {
+    expect(await summarize("{}", groqReply("", 429) as unknown as typeof fetch)).toBeNull();
+  });
+
+  it("zonder keys → null zonder netwerk-call", async () => {
+    delete process.env.GROQ_API_KEY;
+    const fetchImpl = groqReply("x");
+    expect(await summarize("{}", fetchImpl as unknown as typeof fetch)).toBeNull();
+    expect(fetchImpl).not.toHaveBeenCalled();
   });
 });

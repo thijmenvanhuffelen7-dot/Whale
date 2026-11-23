@@ -96,15 +96,60 @@ export function buildFactsPrompt(t: TokenInfo, stats: WhaleStats, news: NewsItem
   );
 }
 
-let anthropic: Anthropic | null = null;
+const userPrompt = (facts: string) => `Data:\n${facts}\n\nSchrijf de samenvatting.`;
+
+/** Advies-achtige of lege tekst → null, dan tonen we alleen de feiten. */
+function clean(text: string | null | undefined): string | null {
+  const t = (text ?? "").trim();
+  return t && !containsAdvice(t) ? t : null;
+}
 
 /**
- * Korte, neutrale samenvatting. Model via ANTHROPIC_MODEL (standaard
- * claude-sonnet-5-5). Bij een weigering of advies-achtige tekst: null, dan
- * tonen we alleen de feiten.
+ * Korte, neutrale samenvatting. Groq als GROQ_API_KEY gezet is (standaard),
+ * anders Anthropic als ANTHROPIC_API_KEY gezet is, anders null (alleen feiten).
  */
-export async function summarize(facts: string): Promise<string | null> {
-  if (!process.env.ANTHROPIC_API_KEY) return null;
+export async function summarize(facts: string, fetchImpl: typeof fetch = fetch): Promise<string | null> {
+  if (process.env.GROQ_API_KEY) return summarizeGroq(facts, fetchImpl);
+  if (process.env.ANTHROPIC_API_KEY) return summarizeAnthropic(facts);
+  return null;
+}
+
+/** Groq: OpenAI-compatibele chat completions API. */
+async function summarizeGroq(facts: string, fetchImpl: typeof fetch): Promise<string | null> {
+  try {
+    const res = await fetchImpl("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
+        temperature: 0.2,
+        max_tokens: 500,
+        messages: [
+          { role: "system", content: ANALYSE_SYSTEM_PROMPT },
+          { role: "user", content: userPrompt(facts) },
+        ],
+      }),
+      signal: AbortSignal.timeout(20_000),
+    });
+    if (!res.ok) {
+      console.error("[analyse] Groq-call mislukt", res.status, await res.text().catch(() => ""));
+      return null;
+    }
+    const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+    return clean(data.choices?.[0]?.message?.content);
+  } catch (err) {
+    console.error("[analyse] Groq-call mislukt", err);
+    return null;
+  }
+}
+
+let anthropic: Anthropic | null = null;
+
+/** Anthropic (optioneel). Model via ANTHROPIC_MODEL. */
+async function summarizeAnthropic(facts: string): Promise<string | null> {
   anthropic ??= new Anthropic();
   try {
     const res = await anthropic.beta.messages.create({
@@ -117,16 +162,15 @@ export async function summarize(facts: string): Promise<string | null> {
       betas: ["server-side-fallback-2026-07-01"],
       fallbacks: "default",
       system: ANALYSE_SYSTEM_PROMPT,
-      messages: [{ role: "user", content: `Data:\n${facts}\n\nSchrijf de samenvatting.` }],
+      messages: [{ role: "user", content: userPrompt(facts) }],
     });
     if (res.stop_reason === "refusal") return null;
-    const text = res.content
-      .filter((b) => b.type === "text")
-      .map((b) => (b as { text: string }).text)
-      .join("\n")
-      .trim();
-    if (!text || containsAdvice(text)) return null;
-    return text;
+    return clean(
+      res.content
+        .filter((b) => b.type === "text")
+        .map((b) => (b as { text: string }).text)
+        .join("\n"),
+    );
   } catch (err) {
     console.error("[analyse] Claude-call mislukt", err);
     return null;

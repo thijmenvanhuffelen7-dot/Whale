@@ -97,6 +97,17 @@ export function getBot(): Bot {
       },
     },
 
+    checkDb: async () => {
+      try {
+        const { error } = await db().from("settings").select("key").limit(1);
+        if (error) console.error("[checkDb]", error.message);
+        return !error;
+      } catch (e) {
+        console.error("[checkDb]", e);
+        return false;
+      }
+    },
+
     linkAccount: async (code, tg) => {
       const { data: prof } = await db().from("profiles").select("id, plan").eq("telegram_link_code", code).maybeSingle();
       if (!prof) return "invalid";

@@ -58,6 +58,8 @@ const en = {
   setupTopicsFailed:
     "⚠️ Couldn't create topics (give the bot the <i>Manage topics</i> right). Alerts will go to this topic/the main chat.",
   setupNoTopics: "No forum topics: alerts go to the main chat.",
+  setupNoDb:
+    "⚠️ The database isn't connected, so I can't save this group. Check the Supabase keys in Vercel and redeploy. Status: /api/health on your website.",
   topicNames: { eth: "🐋 ETH", sol: "🐋 SOL", digest: "📊 Digest" },
 
   addWalletUsage:
@@ -124,6 +126,8 @@ const nl: Messages = {
   setupTopicsFailed:
     "⚠️ Kon geen topics aanmaken (geef de bot het recht <i>Topics beheren</i>). Alerts komen nu in dit topic/de hoofdchat.",
   setupNoTopics: "Geen forum-topics: alerts komen in de hoofdchat.",
+  setupNoDb:
+    "⚠️ De database is niet gekoppeld, dus ik kan deze groep niet opslaan. Check de Supabase-keys in Vercel en redeploy. Status: /api/health op je website.",
   topicNames: { eth: "🐋 ETH", sol: "🐋 SOL", digest: "📊 Digest" },
   addWalletUsage: "Gebruik: <code>/addwallet &lt;eth|sol&gt; &lt;adres&gt; &lt;label&gt; [smart_money|whale]</code>",
   invalidChain: "Chain moet <code>eth</code> of <code>sol</code> zijn.",

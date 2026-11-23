@@ -26,6 +26,8 @@ export type BotDeps = {
     run: (query: string) => Promise<string | null>;
     log: (userId: number, query: string) => Promise<void>;
   };
+  /** Is de database bereikbaar? (voor /setup) */
+  checkDb?: () => Promise<boolean>;
   /** /start <code>: Telegram aan een website-account koppelen. */
   linkAccount?: (
     code: string,
@@ -91,27 +93,28 @@ export function createBot(token: string, deps: BotDeps, opts: { botInfo?: BotFul
     "setup",
     adminOnly(async (ctx) => {
       const chat = ctx.chat!;
+      // Eerst checken of we kunnen opslaan; anders geen (dubbele) topics aanmaken.
+      if (deps.checkDb && !(await deps.checkDb())) return reply(ctx, m.setupNoDb);
+
       const isForum = "is_forum" in chat && chat.is_forum === true;
       if (!isForum) {
         await deps.saveAlertTarget(chat.id, null);
         return reply(ctx, m.setupDone(chat.id, m.setupNoTopics));
       }
+
+      let topics: Topics | null = null;
       try {
         const [eth, sol, digest] = await Promise.all([
           ctx.api.createForumTopic(chat.id, m.topicNames.eth),
           ctx.api.createForumTopic(chat.id, m.topicNames.sol),
           ctx.api.createForumTopic(chat.id, m.topicNames.digest),
         ]);
-        await deps.saveAlertTarget(chat.id, {
-          eth: eth.message_thread_id,
-          sol: sol.message_thread_id,
-          digest: digest.message_thread_id,
-        });
-        return reply(ctx, m.setupDone(chat.id, m.setupTopicsCreated));
+        topics = { eth: eth.message_thread_id, sol: sol.message_thread_id, digest: digest.message_thread_id };
       } catch {
-        await deps.saveAlertTarget(chat.id, null, threadOf(ctx));
-        return reply(ctx, m.setupDone(chat.id, m.setupTopicsFailed));
+        topics = null;
       }
+      await deps.saveAlertTarget(chat.id, topics, topics ? undefined : threadOf(ctx));
+      return reply(ctx, m.setupDone(chat.id, topics ? m.setupTopicsCreated : m.setupTopicsFailed));
     }),
   );
 

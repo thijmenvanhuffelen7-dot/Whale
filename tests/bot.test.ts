@@ -223,3 +223,15 @@ describe("/start <code> (account koppelen)", () => {
     expect(sent()[0]).toContain("Welcome");
   });
 });
+
+describe("/setup met kapotte database", () => {
+  it("maakt geen topics aan als de database niet bereikbaar is", async () => {
+    const deps = makeDeps({ checkDb: async () => false });
+    const bot = createBot(TOKEN, deps, { botInfo: BOT_INFO });
+    const calls = interceptApi(bot, { [ADMIN]: "administrator" });
+    await bot.handleUpdate(commandUpdate("/setup", { userId: ADMIN, forum: true }) as never);
+    expect(calls.some((c) => c.method === "createForumTopic")).toBe(false);
+    expect(deps.saveAlertTarget).not.toHaveBeenCalled();
+    expect(calls.find((c) => c.method === "sendMessage")!.payload.text).toContain("database isn't connected");
+  });
+});
